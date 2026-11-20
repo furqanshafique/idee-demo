@@ -1,0 +1,274 @@
+{
+  "schema_version": "demo-1.0",
+  "demo_only": true,
+  "project": {
+    "id": "IDEE-ET-01",
+    "company": "Ergo-Tec GmbH",
+    "case": "Fiktiver Referenzauftrag UL-01",
+    "goal": "Neue kaufbare Teilleistungen außerhalb der Patientenlagerung entdecken",
+    "region": "DE/EU; internationale Signale nur als Kontext",
+    "existing_markets": [
+      "Patientenpositionierung",
+      "Sondermaschinenbau",
+      "Prüfsysteme (öffentlich genannt; genaue Anwendungen offen)"
+    ],
+    "pilot_budget_eur": null,
+    "free_capacity_hours": null
+  },
+  "documents": [
+    {
+      "id": "IDEE-01",
+      "file": "documents/IDEE-01_Projektakte_UL-01.pdf",
+      "pages": 3,
+      "synthetic": true,
+      "kind": "reference_project",
+      "sha256": "709c7b64cc2176e94b148f7c768244fb344f02682bad1861567b18e71a80f03b"
+    },
+    {
+      "id": "IDEE-02",
+      "file": "documents/IDEE-02_Faehigkeitsnachweis.pdf",
+      "pages": 1,
+      "synthetic": true,
+      "kind": "optional_capability",
+      "sha256": "654794a461922403942db25ff08cb896edc51aabda9143d3db00b3eb25434f72"
+    },
+    {
+      "id": "IDEE-03",
+      "file": "documents/IDEE-03_Bedarfstest.pdf",
+      "pages": 1,
+      "synthetic": true,
+      "kind": "negative_test_only",
+      "sha256": "ce5d65fa64d6ee619e7ddae75c8172c4fde79c35a753ceefab43de08e330ff0f"
+    },
+    {
+      "id": "PB-17",
+      "file": "documents/PB-17_R1-A_Endfassung.pdf",
+      "pages": 2,
+      "synthetic": true,
+      "kind": "supporting_report",
+      "sha256": "47f315ee764b4e3c5d9db26034da0292610821aa215e901982e15ccbef8f6b61"
+    }
+  ],
+  "capability_candidates": [
+    {
+      "id": "CAP-01",
+      "title": "Mechanische Konstruktion",
+      "source": {
+        "document_id": "IDEE-01",
+        "page": 1,
+        "quote": "Das Musterteam konstruiert den Grundrahmen und die mechanischen Befestigungspunkte."
+      },
+      "origin": "documented",
+      "confirmation": "proposed",
+      "control": "internal_claimed",
+      "transfer": "open",
+      "parameters": {},
+      "requires": []
+    },
+    {
+      "id": "CAP-02",
+      "title": "Integration zugekaufter Hubantriebe",
+      "source": {
+        "document_id": "IDEE-01",
+        "page": 2,
+        "quote": "Das Musterteam montiert den zugekauften Hubantrieb MH-A am Grundrahmen"
+      },
+      "origin": "documented",
+      "confirmation": "proposed",
+      "control": "internal_claimed",
+      "transfer": "open",
+      "parameters": {},
+      "requires": []
+    },
+    {
+      "id": "CAP-03",
+      "title": "Mechanische Baugruppen ausrichten und montieren",
+      "source": {
+        "document_id": "IDEE-01",
+        "page": 2,
+        "quote": "richtet die mechanischen Schnittstellen aus"
+      },
+      "origin": "documented",
+      "confirmation": "proposed",
+      "control": "internal_claimed",
+      "transfer": "open",
+      "parameters": {},
+      "requires": []
+    },
+    {
+      "id": "CAP-04",
+      "title": "Halteverhalten prüfen und dokumentieren",
+      "source": {
+        "document_id": "IDEE-01",
+        "page": 2,
+        "quote": "Die interne Muster-Prüffunktion führt einen Halteversuch am montierten Referenzgerät durch."
+      },
+      "origin": "documented",
+      "confirmation": "proposed",
+      "control": "internal_claimed",
+      "transfer": "open",
+      "parameters": {},
+      "requires": [
+        "PB-17"
+      ]
+    },
+    {
+      "id": "CAP-05",
+      "title": "Mechanische Prüfaufnahme bauen",
+      "source": {
+        "document_id": "IDEE-02",
+        "page": 1,
+        "quote": "Ein fiktives Team hat eine mechanische Aufnahme für einen Prüfmusterkörper konstruiert und montiert."
+      },
+      "origin": "documented",
+      "confirmation": "proposed",
+      "control": "internal_claimed",
+      "transfer": "open",
+      "parameters": {
+        "reference_load_kg": 25,
+        "reference_position_error_mm": 0.5,
+        "conditions": "statisch, Raumtemperatur"
+      },
+      "requires": [
+        "Partnerbearbeitung ungeklärt"
+      ]
+    },
+    {
+      "id": "CAP-06",
+      "title": "Metallbearbeitung durch Partner",
+      "source": {
+        "document_id": "IDEE-02",
+        "page": 1,
+        "quote": "Bearbeitung der Metallteile erfolgte bei einem externen Partner; eine Zusage für neue Aufträge liegt nicht vor."
+      },
+      "origin": "documented",
+      "confirmation": "proposed",
+      "control": "partner_unconfirmed",
+      "transfer": "open",
+      "parameters": {},
+      "requires": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-01",
+      "question": "Entwickelt Ihr Team Antriebe selbst oder integriert es zugekaufte Komponenten?",
+      "options": [
+        "Eigenentwicklung",
+        "Integration zugekaufter Komponenten",
+        "Ungeklärt"
+      ],
+      "default": "Ungeklärt",
+      "effect": "Eigenentwicklung = Kundenaussage, Nachweis offen; Integration = keine eigene Motorenentwicklung ableiten."
+    },
+    {
+      "id": "Q-02",
+      "question": "Welche Prüfaufnahmen und Kundengruppen bedienen Sie bereits?",
+      "options": [
+        "Bereits erschlossen",
+        "Nicht erschlossen laut Kundenaussage",
+        "Ungeklärt"
+      ],
+      "default": "Ungeklärt",
+      "effect": "Marktneuheit nicht aus der Suchphrase ableiten."
+    },
+    {
+      "id": "Q-03",
+      "question": "Welche Lasten, Genauigkeiten, Stückzahlen und freien Stunden sind belegt?",
+      "options": [],
+      "default": null,
+      "effect": "Nur belegte Werte bewerten; fehlende Daten offen."
+    }
+  ],
+  "search_fields": [
+    {
+      "id": "SF-01",
+      "title": "Variantenwechsel bei mechanischen Prüfaufnahmen",
+      "query_de": "modulare Prüfaufnahme Variantenwechsel",
+      "query_en": "modular test fixture changeover",
+      "capability_ids": [
+        "CAP-01",
+        "CAP-02",
+        "CAP-03",
+        "CAP-04"
+      ],
+      "buyer_role": "Prüfmittelverantwortliche / Prüfstellenleitung",
+      "status": "hypothesis",
+      "sources": [
+        "patent",
+        "procurement",
+        "product"
+      ]
+    },
+    {
+      "id": "SF-02",
+      "title": "Positionierung in der Laborautomation",
+      "query_de": "verstellbare Probenpositionierung Laborautomation",
+      "query_en": "adjustable sample positioning laboratory automation",
+      "capability_ids": [
+        "CAP-01",
+        "CAP-03"
+      ],
+      "status": "hypothesis",
+      "sources": [
+        "patent",
+        "procurement",
+        "product"
+      ]
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "H-01",
+      "title": "Universelle modulare Prüfaufnahme",
+      "status": "unreviewed",
+      "counterevidence_ids": [
+        "PAT-01",
+        "ALT-01"
+      ],
+      "expected_after_review": "zurückgestellt: bereits beschriebene/angebotene Grundidee; Marktbedarf nicht geklärt"
+    },
+    {
+      "id": "H-02",
+      "parent_id": "H-01",
+      "title": "Kundenspezifische mechanische Wechselaufnahme für eine belegte Sondergeometrie",
+      "status": "hypothesis",
+      "market_gap": "unknown",
+      "technical_fit": "open",
+      "ip_status": "not_reviewed",
+      "cost_eur": null,
+      "required_parameters": {
+        "load_kg": null,
+        "position_error_mm": null
+      },
+      "source_ids": [
+        "PAT-01",
+        "MARKET-01",
+        "ALT-01"
+      ],
+      "next_question": "Welche konkrete Geometrie wird durch vorhandene Lösungen nicht abgedeckt?"
+    }
+  ],
+  "initial_state": {
+    "profile_version": 0,
+    "imported_document_ids": [],
+    "approved_capability_ids": [],
+    "answers": {},
+    "search_runs": []
+  },
+  "rules": {
+    "min_independent_origins_for_priority": 2,
+    "needs_recent_buyer_or_procurement_evidence": true,
+    "unknown_is_not_zero": true,
+    "synthetic_evidence_never_real_market_evidence": true
+  },
+  "synthetic_matching_case": {
+    "source": "IDEE-03",
+    "required_load_kg": 50,
+    "max_position_error_mm": 0.1,
+    "reference_capability_id": "CAP-05",
+    "expected": "Transfer offen; strengere Anforderungen nicht nachgewiesen; keine Freigabe",
+    "counterexample_toggle": "Serienaufnahme erfüllt alle Anforderungen -> Variante zurückstellen",
+    "never_count_as_real_evidence": true
+  }
+}

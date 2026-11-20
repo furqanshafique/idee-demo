@@ -1,0 +1,7 @@
+# Secrets – never commit
+.env
+# Internal specification (Michael Reble briefing, field catalog): not for publication
+references/
+__pycache__/
+*.pyc
+.DS_Store

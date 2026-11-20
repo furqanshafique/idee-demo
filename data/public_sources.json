@@ -1,0 +1,103 @@
+{
+  "retrieval_mode": "curated_reference_not_live",
+  "verified_on": "2026-11-20",
+  "sources": [
+    {
+      "id": "PUB-ET-MED",
+      "kind": "company_public",
+      "title": "Ergo-Tec – Entwicklung & Fertigung",
+      "url": "https://et-medical.eu/entwicklung-fertigung/",
+      "anchor": "Unternehmensbeschreibung / elektrisch höhenverstellbare Produkte",
+      "summary": "Das Unternehmen beschreibt Entwicklung und Fertigung elektrisch verstellbarer Patientenpositionierungssysteme.",
+      "evidence": "Öffentliche Selbstauskunft; keine Bestätigung konkreter Leistungsgrenzen."
+    },
+    {
+      "id": "PUB-ET-IND",
+      "kind": "company_public",
+      "title": "Ergo-Tec – Sondermaschinenbau",
+      "url": "https://et-industrial.eu/sondermaschinenbau/",
+      "anchor": "Prüfvorrichtung für Statoren",
+      "summary": "Ergo-Tec nennt eine Stator-Prüfvorrichtung und bietet u. a. Montage, Verdrahtung und Endprüfung an.",
+      "evidence": "Prüftechnik ist kein automatisch neuer Markt; bestehende Kunden/Anwendungen erfragen."
+    },
+    {
+      "id": "PAT-01",
+      "kind": "patent",
+      "title": "Universal modular test fixture",
+      "publication": "WO2021055483A1",
+      "published": "2021-03-25",
+      "origin": "PAT-FAM-01",
+      "url": "https://patents.google.com/patent/WO2021055483A1/en",
+      "anchor": "Description, Background [0003]",
+      "summary": "Der Anmelder beschreibt den Zeitaufwand beim Wechsel bzw. Umbau von Prüfaufnahmen für unterschiedliche Proben und Testarten.",
+      "problem": "Zeitaufwand bei Variantenwechsel von Prüfaufnahmen",
+      "solution": "Modulare, umkonfigurierbare Prüfaufnahme (beschriebene Lösung)",
+      "evidence": "Historisches technisches Signal aus Anmelderperspektive; keine gemessene Einsparung, kein Nachfragebeleg.",
+      "legal_status": null,
+      "keywords": [
+        "prüfaufnahme",
+        "prüfvorrichtung",
+        "test fixture",
+        "modular",
+        "positionierung",
+        "wechseladapter",
+        "changeover"
+      ]
+    },
+    {
+      "id": "MARKET-01",
+      "kind": "procurement",
+      "title": "Mechanical Testing Suite – TU Dublin",
+      "origin": "PROC-TUD-01",
+      "url": "https://www.etenders.gov.ie/epps/notices/viewPublishedContractNotice.do?documentId=3403002&extId=3340895&isNational=false&lang=en&noticeId=3340895&noticeType=16&resourceId=3224848",
+      "anchor": "Description: Mechanical Testing Suite",
+      "summary": "Öffentliche Beschaffung einer mechanischen Prüfanlage einschließlich hydraulischer Spannmittel.",
+      "evidence": "Historischer Beschaffungshinweis für Prüftechnik und Spannmittel; kein Auftrag für die vorgeschlagene Sonderaufnahme, keine aktuelle Ausschreibung behaupten.",
+      "keywords": [
+        "prüfaufnahme",
+        "prüfvorrichtung",
+        "mechanical testing",
+        "test fixture",
+        "grips",
+        "spannmittel"
+      ]
+    },
+    {
+      "id": "ALT-01",
+      "kind": "product",
+      "title": "Instron – Structural Durability Products",
+      "origin": "PROD-INSTRON-01",
+      "url": "https://www.instron.com/en/products/testing-systems/structural-durability/structural-durability-products/",
+      "anchor": "Modular test frames and fixtures",
+      "summary": "Instron bietet modulare Prüfrahmen und Aufnahmen für verschiedene Proben, Lasten und Geometrien an.",
+      "evidence": "Gegenbeleg zur pauschalen Neuheitsbehauptung; ob eine konkrete Sondergeometrie abgedeckt ist, bleibt offen.",
+      "keywords": [
+        "prüfaufnahme",
+        "prüfvorrichtung",
+        "test fixture",
+        "modular",
+        "wechseladapter"
+      ]
+    },
+    {
+      "id": "PAT-02",
+      "kind": "patent",
+      "title": "Bodenreinigungsgerät mit einem Plasmaapplikator",
+      "publication": "DE102011010355A1",
+      "origin": "PAT-FAM-02",
+      "url": "https://patents.google.com/patent/DE102011010355A1/de",
+      "anchor": "Ansprüche 1–2; Beschreibung",
+      "summary": "Eine veröffentlichte Anmeldung beschreibt ein Bodenreinigungsgerät mit integriertem Plasmaapplikator.",
+      "problem": "Nicht als aktueller Bedarf bestätigt",
+      "solution": "Bodenreinigung mit integriertem Plasmaapplikator",
+      "evidence": "Gegenbeleg zur Behauptung einer unbekannten Grundidee. Aktueller Rechtsstand und Marktbedarf offen.",
+      "legal_status": null,
+      "keywords": [
+        "kaltplasma",
+        "bodenreinigung",
+        "plasma",
+        "floor cleaning"
+      ]
+    }
+  ]
+}

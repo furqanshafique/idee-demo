@@ -1,0 +1,8 @@
+{"ops:world-patent-data": {"ops:biblio-search": {"@total-result-count": "1",
+  "ops:search-result": {"exchange-documents": [{"exchange-document": {
+    "@country": "WO", "@doc-number": "2021055483", "@kind": "A1", "@family-id": "SAMPLE-SHAPE-ONLY",
+    "bibliographic-data": {
+      "invention-title": [{"@lang": "en", "$": "UNIVERSAL MODULAR TEST FIXTURE"}],
+      "publication-reference": {"document-id": [{"@document-id-type": "docdb", "date": {"$": "20210325"}}]},
+      "parties": {"applicants": {"applicant": [{"@data-format": "epodoc", "applicant-name": {"name": {"$": "SAMPLE"}}}]}}
+    }}}]}}}}
