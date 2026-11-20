@@ -6,6 +6,7 @@ import { readPdf } from './pdftext.js';
 import { fetchStatus, startLive, startOffline, planSpecs } from './research.js';
 import { checkQuery, validateExtraction } from './rules.js';
 import { buildHtml, buildJson, download } from './export.js';
+import { fileUrl } from './base.js';
 
 const $ = sel => document.querySelector(sel);
 const { actions } = store;
@@ -20,6 +21,8 @@ function render() {
   $('#flash').innerHTML = flash();
   $('#main').innerHTML = screen();
   $('#main-wrap').scrollTop = scroll;
+  const frame = document.getElementById('report-frame');
+  if (frame) frame.srcdoc = buildHtml();
   if (focus) {
     const el = focus.startsWith('#') ? document.getElementById(focus.slice(1)) : document.querySelector(`[data-form="${focus}"]`);
     if (el && el.type !== 'checkbox' && el.type !== 'radio' && el.tagName !== 'SELECT') {
@@ -35,7 +38,7 @@ function docInfo(docId) {
   const s = store.getState();
   const d = s.documents.find(x => x.id === docId);
   const seed = store.seedDoc(docId);
-  if (seed) return { url: `/${seed.file}`, title: `${docId} · ${seed.file.split('/').pop()}`, imported: !!d, doc: d };
+  if (seed) return { url: fileUrl(seed.file), title: `${docId} · ${seed.file.split('/').pop()}`, imported: !!d, doc: d };
   if (d) return { url: runtime.blobs[docId] || null, title: `${d.id} · ${d.name}`, imported: true, doc: d, upload: true };
   return null;
 }
@@ -89,7 +92,7 @@ async function importBytes(name, bytes, blobUrl) {
 }
 async function importSample(id) {
   const d = store.seedDoc(id);
-  const r = await fetch(`/${d.file}`, { cache: 'no-store' });
+  const r = await fetch(fileUrl(d.file), { cache: 'no-store' });
   if (!r.ok) return store.flashMsg('error', `${d.file} nicht ladbar (HTTP ${r.status}).`);
   const rec = await importBytes(d.file.split('/').pop(), new Uint8Array(await r.arrayBuffer()));
   if (rec && id !== 'IDEE-03') openDoc(id, 1);
@@ -169,7 +172,7 @@ document.addEventListener('click', async e => {
       store.setUi({ sepQuery: q }, false);
       if (!chk.ok) return store.flashMsg('error', chk.error);
       actions.goto(5);
-      if (act === 'sep-offline') return startOffline({ queries: [{ query: chk.cleaned }], label: `Separater Test „${chk.cleaned}“`, separate: true });
+      if (act === 'sep-offline' || !runtime.status?.ok) return startOffline({ queries: [{ query: chk.cleaned }], label: `Separater Test „${chk.cleaned}“`, separate: true });
       return startLive({ specs: [{ provider: 'epo', query: chk.cleaned }, { provider: 'ted', query: chk.cleaned }], limit: 20, timeout: 15, label: `Separater Test „${chk.cleaned}“`, separate: true });
     }
     case 'tab': return store.setUi({ tab: el.dataset.tab });
@@ -188,11 +191,7 @@ document.addEventListener('click', async e => {
     }
     case 'export-html': return download(`IDEE_${s.project.id}_Zusammenfassung_v${s.profile.version}.html`, buildHtml(), 'text/html');
     case 'export-json': return download(`IDEE_${s.project.id}_v${s.profile.version}.json`, JSON.stringify(buildJson(), null, 2), 'application/json');
-    case 'export-view': {
-      const url = URL.createObjectURL(new Blob([buildHtml()], { type: 'text/html' }));
-      window.open(url, '_blank', 'noopener');
-      return;
-    }
+    case 'export-view': return store.setUi({ showReport: !store.getUi().showReport });
     default:
   }
 });
@@ -233,13 +232,13 @@ document.addEventListener('input', e => {
 (async function boot() {
   try {
     const get = p => fetch(p, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(`${p}: HTTP ${r.status}`); return r.json(); });
-    const [seed, publicSources] = await Promise.all([get('/data/seed.json'), get('/data/public_sources.json')]);
+    const [seed, publicSources] = await Promise.all([get(fileUrl('data/seed.json')), get(fileUrl('data/public_sources.json'))]);
     store.init({ seed, publicSources });
     store.subscribe(() => { render(); renderViewer(); });
     render();
     await refreshStatus();
     window.__idee = { store, actions };
   } catch (e) {
-    $('#main').innerHTML = `<div class="fatal"><b>App konnte nicht starten.</b><br>${esc(e.message)}<br>Bitte mit <code>python3 server/server.py</code> starten und <code>http://127.0.0.1:8770/app/</code> öffnen.</div>`;
+    $('#main').innerHTML = `<div class="fatal"><b>App konnte nicht starten.</b><br>${esc(e.message)}<br>Lokal: <code>python3 server/server.py</code> starten und <code>http://127.0.0.1:8770/app/</code> öffnen.</div>`;
   }
 })();

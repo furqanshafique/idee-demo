@@ -37,9 +37,9 @@ export function header() {
   const s = store.getState();
   const st = runtime.status;
   const chip = (k, label) => {
-    const v = st?.ok ? st.providers[k]?.status : 'offline';
-    const tone = v === 'ready' ? 'ok' : v === 'not_configured' ? 'warn' : 'bad';
-    const text = v === 'ready' ? 'bereit' : v === 'not_configured' ? 'nicht konfiguriert' : 'Server fehlt';
+    const v = st?.ok ? st.providers[k]?.status : st?.static ? 'demo' : 'offline';
+    const tone = v === 'ready' ? 'ok' : v === 'not_configured' || v === 'demo' ? 'warn' : 'bad';
+    const text = v === 'ready' ? 'bereit' : v === 'demo' ? 'Demo-Bestand' : v === 'not_configured' ? (k === 'epo' ? 'Demo-Bestand' : 'nicht konfiguriert') : 'Server fehlt';
     return `<span class="pchip ${tone}" title="${esc(st?.ok ? st.providers[k]?.label : st?.error || '')}">${esc(label)}: ${text}</span>`;
   };
   const confirming = store.getUi().confirmReset;
@@ -329,8 +329,8 @@ function s4() {
     </div>
     <table class="tbl small"><thead><tr><th>Anbieter</th><th>Erwartete Quelle</th><th>Abdeckung / Grenzen</th><th>Status</th></tr></thead><tbody>
       <tr><td>EPO OPS</td><td>Veröffentlichte Patentanmeldungen (Titel/Abstract-Suche)</td><td>DOCDB weltweit; kein Rechtsstand, keine FTO; max. 25 je Abfrage; Fair-Use-Kontingent</td><td>${epoReady ? badge('ok', 'bereit') : badge('warn', 'Demo-Bestand (EPO nicht konfiguriert)')}</td></tr>
-      <tr><td>TED</td><td>EU-Bekanntmachungen (Volltext)</td><td>Nur öffentliche EU-Vergaben oberhalb der Schwellenwerte; Zuschläge ≠ neue Leads</td><td>${st?.ok ? badge('ok', 'bereit') : badge('bad', 'Server fehlt')}</td></tr>
-      <tr><td>Crossref</td><td>Publikations-Metadaten</td><td>Nur Metadaten; Stichprobe ≠ Markttrend</td><td>${st?.ok ? badge('ok', 'bereit') : badge('bad', 'Server fehlt')}</td></tr>
+      <tr><td>TED</td><td>EU-Bekanntmachungen (Volltext)</td><td>Nur öffentliche EU-Vergaben oberhalb der Schwellenwerte; Zuschläge ≠ neue Leads</td><td>${st?.ok ? badge('ok', 'bereit') : badge('warn', 'Demo-Bestand')}</td></tr>
+      <tr><td>Crossref</td><td>Publikations-Metadaten</td><td>Nur Metadaten; Stichprobe ≠ Markttrend</td><td>${st?.ok ? badge('ok', 'bereit') : badge('warn', 'Demo-Bestand')}</td></tr>
     </tbody></table>
     <div class="row"><button class="btn primary" data-act="plan-confirm">Plan bestätigen – externe Abfragen freigeben</button>
       ${p.confirmed ? '<button class="btn secondary" data-act="goto" data-step="5">Weiter: Recherche →</button>' : ''}</div>`}
@@ -394,11 +394,12 @@ function s5() {
   <div class="page-head"><div><h2>5 · Recherche & Trendradar</h2><p class="lead">Live-Abfragen und vorbereitete Referenzen sind getrennte Modi.</p></div></div>
   <section class="card">
     <header><h3>Start</h3>${p?.confirmed ? badge('ok', `Plan v${p.version}`) : badge('warn', 'Plan nicht bestätigt')}</header>
-    ${!st?.ok ? `<div class="callout bad">${esc(st?.error || 'Status unbekannt')}</div>` : ''}
+    ${st?.static ? '<div class="callout info"><b>Gehostete Demo.</b> Diese Version läuft ohne Recherche-Server. „Recherche starten“ durchsucht den vorbereiteten Bestand echter, geprüfter Quellen (Patente, Beschaffung, Produkte); alle Treffer sind als „Vorbereiteter Referenztreffer“ gekennzeichnet. Live-Abfragen (TED, Crossref, EPO) laufen in der lokalen Installation.</div>' : !st?.ok ? `<div class="callout bad">${esc(st?.error || 'Status unbekannt')}</div>` : ''}
     ${st?.ok && st.providers.epo.status !== 'ready' ? '<div class="callout info"><b>Patentsuche im Demo-Bestand.</b> Ohne EPO-Zugang durchsucht die Recherche einen vorbereiteten Bestand echter, geprüfter Patentveröffentlichungen. Treffer sind als „Vorbereiteter Referenztreffer“ gekennzeichnet; Markt- und Forschungsquellen laufen live.</div>' : ''}
     <div class="row">
+      ${st?.static ? `<button class="btn primary" data-act="run-offline" ${p?.confirmed ? '' : 'disabled'}>Recherche starten (Demo-Bestand)</button>` : `
       <button class="btn primary" data-act="run-live" ${canLive ? '' : 'disabled'}>Recherche starten (live)</button>
-      <button class="btn secondary" data-act="run-offline" ${p?.confirmed ? '' : 'disabled'}>Vorbereitete Recherche (offline)</button>
+      <button class="btn secondary" data-act="run-offline" ${p?.confirmed ? '' : 'disabled'}>Vorbereitete Recherche (offline)</button>`}
       ${!p?.confirmed ? '<span class="small muted">Erst Rechercheplan bestätigen (Schritt 4).</span>' : ''}
     </div>
     ${p?.confirmed ? `<div class="small muted">Gesendet werden ausschließlich: ${R.checkQuery(p.terms.patent).ok ? '' : ''}${Object.entries(p.providers).filter(([, v]) => v).map(([k]) => `<code>${esc(PROV_NAME[k])}: ${esc(p.terms[{ epo: 'patent', ted: 'procurement', crossref: 'research' }[k]])}</code>`).join(' ')}</div>` : ''}
@@ -576,8 +577,11 @@ function s8() {
   <section class="card">
     <div class="banner big">Vorläufige Hypothese – keine Investitionsentscheidung</div>
     <p>Der Bericht enthält Profil- und Laufversionen, Originalquellen mit Links und Abrufmodus (live / vorbereitet / manuell), offene Punkte, zurückgestellte Alternativen und den Hinweis auf synthetische Betriebsdaten.</p>
-    <div class="row"><button class="btn primary" data-act="export-html">HTML-Bericht herunterladen</button><button class="btn secondary" data-act="export-json">JSON exportieren</button><button class="btn ghost" data-act="export-view">Bericht in neuem Tab ansehen</button></div>
-  </section>`;
+    <div class="row"><button class="btn primary" data-act="export-view">${store.getUi().showReport ? 'Bericht ausblenden' : 'Bericht anzeigen'}</button>
+      ${runtime.status?.static ? '' : '<button class="btn secondary" data-act="export-html">HTML-Bericht herunterladen</button><button class="btn ghost" data-act="export-json">JSON exportieren</button>'}</div>
+    ${runtime.status?.static ? '<p class="small muted">Downloads (HTML/JSON) sind in der lokalen Installation verfügbar.</p>' : ''}
+  </section>
+  ${store.getUi().showReport ? '<section class="card"><iframe id="report-frame" title="Recherche-Zusammenfassung" class="report-frame" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe></section>' : ''}`;
 }
 
 export function auditDrawer() { return ''; }

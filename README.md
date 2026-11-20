@@ -12,6 +12,12 @@ python3 server/server.py
 
 Open http://127.0.0.1:8770/app/ (`IDEE_PORT=9000 python3 server/server.py` for another port). Opening `index.html` via `file://` does not work: the app needs the server for data files and the research proxy.
 
+### Hosted click-through copy (no server)
+
+Click-through link (claude.ai artifact, owner must share it): https://claude.ai/artifact/9HNXQMZyyqLtQXvS1yCYyB
+
+`tools/build_hosted.sh <output-dir>` builds a flat copy (page, `js/`, `vendor/`, `data/`, `documents/`) that sets `<meta name="devoreo-base" content=".">`. Without the server, the app switches to hosted mode: „Recherche starten (Demo-Bestand)“ searches only the prepared sources in `public_sources.json` (labelled „Vorbereiteter Referenztreffer“), the report is shown in the page instead of downloaded, and AI extraction is unavailable. Everything else (PDF import and viewer, quote verification, profile, fields, plan, hypotheses, matching case) works the same. The hosted copy is a snapshot: rebuild and republish after code changes. The artifact sandbox blocks external API calls and downloads, which is why live search only runs in the local installation.
+
 ### Environment (optional, server-side only)
 
 ```bash

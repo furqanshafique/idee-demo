@@ -376,7 +376,7 @@ export const actions = {
   },
 
   reset() {
-    localStorage.removeItem(KEY); localStorage.removeItem(UI_KEY);
+    try { localStorage.removeItem(KEY); localStorage.removeItem(UI_KEY); } catch { /* storage blocked */ }
     state = baseline();
     ui = { step: 1, viewer: null, flash: { type: 'ok', text: 'Demo auf Ausgangszustand zurückgesetzt.' }, edit: null, tab: 'patent', runId: null, filter: '' };
     emit();

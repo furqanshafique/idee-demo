@@ -12,7 +12,8 @@ export async function fetchStatus() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return { ok: true, ...(await r.json()) };
   } catch (e) {
-    return { ok: false, error: `Server-Proxy nicht erreichbar (${e.message}). Live-Recherche nicht möglich; App mit server/server.py starten.` };
+    // No proxy (static hosting): research runs against the prepared data set only.
+    return { ok: false, static: true, error: 'Gehostete Demo ohne Recherche-Server: Suche im vorbereiteten Datenbestand.' };
   }
 }
 
