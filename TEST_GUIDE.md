@@ -2,7 +2,8 @@
 
 Click-by-click. Button names are written exactly as they appear on screen. Each test says what you should see.
 
-**Where:** open the demo link (or locally `http://127.0.0.1:8770/app/` after `python3 server/server.py`).
+**Where:** open **https://ksteri.github.io/idee-demo/** – no installation needed.
+(Or locally: `python3 server/server.py`, then `http://127.0.0.1:8770/app/`.)
 **Before each test:** top right **„Demo zurücksetzen“** → **„Ja, zurücksetzen“**. Your clicks are saved only in your own browser.
 
 The left menu has 8 steps. The dot next to each step turns green when it is done.
@@ -101,9 +102,9 @@ This is the walkthrough for the client call.
 
 ---
 
-## Online link vs. local installation
+## Online demo vs. local installation
 
-| | Online link | Local (`python3 server/server.py`) |
+| | Online (ksteri.github.io/idee-demo) | Local (`python3 server/server.py`) |
 |---|---|---|
 | Ausschreibungen (TED), Fachartikel (Crossref) | prepared sources | searched live |
 | Patente | prepared sources | prepared sources (live only with EPO access) |
