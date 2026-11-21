@@ -120,7 +120,7 @@ t('historic procurement -> "nur historisches Signal"', () => {
 
 t('matching: 50 kg / 0.1 mm vs 25 kg / 0.5 mm -> transfer open', () => {
   const m = R.matchCase({ reference_load_kg: 25, reference_position_error_mm: 0.5 }, { required_load_kg: 50, max_position_error_mm: 0.1 });
-  eq(m.transfer, 'open'); eq(m.label, 'Transfer offen – Versuch/Nachweis nötig'); eq(m.issues.length, 3);
+  eq(m.transfer, 'open'); eq(m.label, 'Noch nicht nachgewiesen – Versuch nötig'); eq(m.issues.length, 3);
 });
 t('matching: alternative covers -> deferred with reason', () => {
   const m = R.matchCase({ reference_load_kg: 25, reference_position_error_mm: 0.5 }, { required_load_kg: 50, max_position_error_mm: 0.1 }, { alternativeCovers: true });

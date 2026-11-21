@@ -166,14 +166,9 @@ document.addEventListener('click', async e => {
       const p = s.plan;
       return startOffline({ queries: Object.values(p.terms).map(q => ({ query: q })), label: `${p.fieldId} Plan v${p.version}` });
     }
-    case 'sep-live': case 'sep-offline': {
-      const q = val('sep-q');
-      const chk = checkQuery(q);
-      store.setUi({ sepQuery: q }, false);
-      if (!chk.ok) return store.flashMsg('error', chk.error);
-      actions.goto(5);
-      if (act === 'sep-offline' || !runtime.status?.ok) return startOffline({ queries: [{ query: chk.cleaned }], label: `Separater Test „${chk.cleaned}“`, separate: true });
-      return startLive({ specs: [{ provider: 'epo', query: chk.cleaned }, { provider: 'ted', query: chk.cleaned }], limit: 20, timeout: 15, label: `Separater Test „${chk.cleaned}“`, separate: true });
+    case 'example-kaltplasma': {
+      startOffline({ queries: [{ query: 'Kaltplasma, Bodenreinigung' }], label: 'Beispiel Kaltplasma', separate: true });
+      return store.setUi({ tab: 'patent' });
     }
     case 'tab': return store.setUi({ tab: el.dataset.tab });
     case 'manual-src': return actions.addManualSource({ url: val('ms-url'), title: val('ms-title'), note: val('ms-note'), kind: val('ms-kind') });

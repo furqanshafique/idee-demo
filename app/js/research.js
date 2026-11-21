@@ -70,7 +70,14 @@ export async function startLive({ specs, limit, timeout, label, separate = false
     const queries = cur.queries.map((qq, k) => (k === i ? q : qq));
     store.actions.updateRun(run.id, { queries, results: cur.results.concat(results), status: overall(queries) });
   }));
-  store.actions.updateRun(run.id, { finishedAt: new Date().toISOString() });
+  // There is no live source for competitor products: add the prepared product
+  // references that match the same terms (labelled as prepared).
+  const src = store.getSources().publicSources;
+  const seen = new Set();
+  const products = specs.flatMap(sp => matchCurated(src.sources, sp.query).filter(h => h.kind === 'product')
+    .filter(h => !seen.has(h.id) && seen.add(h.id)).map(h => curatedResult(h, sp.query, src.verified_on)));
+  const cur = store.getState().runs.find(r => r.id === run.id);
+  store.actions.updateRun(run.id, { finishedAt: new Date().toISOString(), results: cur.results.concat(products) });
 }
 
 export function planSpecs(plan) {

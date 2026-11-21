@@ -10,7 +10,7 @@ export const CONTROL = {
 };
 export const TRANSFER = { open: 'offen', plausible: 'plausibel', proven: 'belegt', gap: 'Lücke' };
 export const CONFIRMATION = {
-  proposed: 'vorgeschlagen', confirmed: 'bestätigt (Demo-Profil)', corrected: 'korrigiert (Demo-Profil)', open: 'offen gelassen',
+  proposed: 'vorgeschlagen', confirmed: 'bestätigt', corrected: 'korrigiert', open: 'offen gelassen',
 };
 
 // Identifiers that must never reach an external service (IDEE-01, p. 3).
@@ -144,27 +144,27 @@ export function assessHypothesis(h, ctx) {
 
   const dims = {};
   dims.kompetenz = !capsOk
-    ? { status: 'offen', tone: 'warn', note: 'Verknüpfte Fähigkeiten nicht vollständig bestätigt.' }
+    ? { status: 'offen', tone: 'warn', note: 'Nicht alle Fähigkeiten sind bestätigt.' }
     : matching?.transfer === 'open'
-      ? { status: 'Transfer offen – Versuch/Nachweis nötig', tone: 'warn', note: matching.note }
-      : { status: 'Demo-Profil bestätigt, Übertragung ungeprüft', tone: 'neutral', note: 'Bestätigung im Demo-Lauf ist kein verifiziertes Kundenprofil.' };
+      ? { status: 'Noch nicht nachgewiesen – Versuch nötig', tone: 'warn', note: matching.note }
+      : { status: 'Fähigkeiten bestätigt, Übertragung ungeprüft', tone: 'neutral', note: 'Im Beispielprofil bestätigt, nicht bei Ergo-Tec.' };
   dims.bedarf = demand.length === 0
-    ? { status: 'nicht belegt', tone: 'bad', note: 'Kein authentisches Käufer- oder Beschaffungssignal verknüpft.' }
+    ? { status: 'nicht belegt', tone: 'bad', note: 'Noch kein echter Käufer und keine offene Ausschreibung.' }
     : recent.length === 0
-      ? { status: 'nur historisches Signal', tone: 'warn', note: 'Historische Beschaffung ist kein aktueller Bedarf.' }
+      ? { status: 'nur historisches Signal', tone: 'warn', note: 'Nur ein alter Kauf – zeigt keinen heutigen Bedarf.' }
       : { status: 'Signal vorhanden – beim Käufer bestätigen', tone: 'neutral', note: `${recent.length} aktuelle(s) Signal(e), ${origins} unabhängige Herkunft(en).` };
   dims.differenzierung = counter.length
-    ? { status: 'Gegenbeleg vorhanden', tone: 'bad', note: `Grundidee bereits beschrieben/angeboten: ${counter.map(s => s.id).join(', ')}` }
-    : { status: 'ungeprüft', tone: 'warn', note: 'Keine Gegenrecherche verknüpft.' };
+    ? { status: 'Gegenbeleg vorhanden', tone: 'bad', note: `Ähnliches gibt es schon: ${counter.map(s => s.id).join(', ')}` }
+    : { status: 'ungeprüft', tone: 'warn', note: 'Noch nicht geprüft.' };
   const budgetKnown = project.pilot_budget_eur != null && project.pilot_budget_eur !== '';
   dims.ressourcen = budgetKnown && project.free_capacity_hours != null
     ? { status: 'Angaben vorhanden', tone: 'neutral', note: 'Nur Kundenangaben, nicht geprüft.' }
-    : { status: 'offen', tone: 'warn', note: 'Budget und/oder freie Kapazität unbekannt – unbekannt ist nicht null.' };
-  dims.ip = { status: 'nicht geprüft', tone: 'warn', note: 'Keine Rechtsstands- oder FTO-Prüfung. Veröffentlichung ≠ Verbot.' };
+    : { status: 'offen', tone: 'warn', note: 'Budget und freie Kapazität sind noch unbekannt.' };
+  dims.ip = { status: 'nicht geprüft', tone: 'warn', note: 'Ob Patente einen Verkauf verhindern, ist nicht geprüft.' };
 
   const blockers = [];
   if (origins < minOrigins) blockers.push(`weniger als ${minOrigins} unabhängige Quellen`);
-  if (recent.length === 0) blockers.push('kein aktuelles authentisches Betreiber-/Beschaffungssignal');
+  if (recent.length === 0) blockers.push('kein aktueller Käufer- oder Ausschreibungsbeleg');
   if (!capsOk) blockers.push('Fähigkeiten nicht bestätigt');
   if (!budgetKnown) blockers.push('Budget unbekannt');
   return { dims, priorityAllowed: blockers.length === 0, blockers };
@@ -181,11 +181,11 @@ export function matchCase(ref, req, { partnerConfirmed = false, alternativeCover
   const transfer = issues.length ? 'open' : 'plausible';
   return {
     transfer,
-    label: transfer === 'open' ? 'Transfer offen – Versuch/Nachweis nötig' : 'Transfer plausibel – Nachweis trotzdem nötig',
+    label: transfer === 'open' ? 'Noch nicht nachgewiesen – Versuch nötig' : 'Wahrscheinlich machbar – Nachweis trotzdem nötig',
     issues,
     note: issues.join('; '),
     hypothesisStatus: alternativeCovers ? 'deferred' : 'hypothesis',
-    reason: alternativeCovers ? 'Synthetischer Gegenbeleg: vorhandene Serienaufnahme erfüllt alle Anforderungen zu akzeptablem Preis.' : null,
+    reason: alternativeCovers ? 'Test: Ein fertiges Produkt erfüllt die Anfrage schon zu einem akzeptablen Preis.' : null,
   };
 }
 
@@ -213,6 +213,6 @@ export function dedupeByFamily(results) {
 }
 
 export const HYP_STATUS = {
-  unreviewed: 'ungeprüft', hypothesis: 'Forschungshypothese', deferred: 'zurückgestellt',
-  rejected: 'verworfen', novelty_rejected: 'Neuheit verworfen / zurückgestellt',
+  unreviewed: 'ungeprüft', hypothesis: 'Idee in Prüfung', deferred: 'zurückgestellt',
+  rejected: 'verworfen', novelty_rejected: 'zurückgestellt – gibt es schon',
 };

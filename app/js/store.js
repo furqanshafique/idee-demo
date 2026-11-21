@@ -146,7 +146,7 @@ export const actions = {
   // doc: { name, sha256, pages, pageTexts, size }
   addDocument(doc) {
     const dup = state.documents.find(d => d.sha256 === doc.sha256);
-    if (dup) { flash('info', `Identische Datei bereits importiert (${dup.id}) – keine Duplikate angelegt.`); emit(); return dup; }
+    if (dup) { flash('info', `${dup.id} ist bereits importiert – nichts doppelt angelegt.`); emit(); return dup; }
     const known = SRC.seed.documents.find(d => d.sha256 === doc.sha256);
     const rec = {
       id: known ? known.id : `UPL-${doc.sha256.slice(0, 8)}`,
@@ -176,8 +176,8 @@ export const actions = {
       audit(`Unbekannte Datei ${doc.name} importiert (${doc.pages} Seiten, nur Text)`);
     }
     const msg = known
-      ? `${rec.id}: ${doc.pages} Seiten gelesen, Hash bekannt. ${added} Fähigkeitsvorschläge mit verifiziertem Zitat${failed ? `, ${failed} nicht verifizierbar → Prüfliste` : ''}.`
-      : `${doc.name}: ${doc.pages} Seiten, ${rec.textChars} Zeichen Text extrahiert. Unbekannte Datei – keine Musterdaten angewendet; Fähigkeiten manuell mit Belegstelle anlegen.`;
+      ? `${rec.id} gelesen (${doc.pages} Seiten). ${added} Fähigkeiten gefunden, Textstellen geprüft${failed ? `; ${failed} Textstelle(n) nicht gefunden` : ''}.`
+      : `${doc.name} gelesen (${doc.pages} Seiten). Fähigkeiten bitte von Hand mit Textstelle ergänzen.`;
     flash(known ? 'ok' : 'info', rec.textChars === 0 && !known ? `${msg} Hinweis: kein lesbarer Text (evtl. Scan).` : msg);
     emit();
     return rec;
@@ -349,9 +349,9 @@ export const actions = {
   },
   reviewH01() {
     const missing = ['PAT-01', 'ALT-01'].filter(x => !foundInRuns(x));
-    if (missing.length) { flash('warn', `Gegenbelege noch nicht in einem Recherchelauf gefunden: ${missing.join(', ')}.`); emit(); return; }
-    actions.updateHyp('H-01', { status: 'novelty_rejected', source_ids: ['PAT-01', 'ALT-01'], reason: 'Grundidee bereits beschrieben (PAT-01) und kommerziell angeboten (ALT-01). Breite Markthypothese zurückgestellt; Marktbedarf ungeklärt. Keine Aussage zu Schutzrechtslage oder Verkaufsverbot.' }, 'Gegenbeleg geprüft');
-    flash('ok', 'H-01: Neuheitsbehauptung verworfen, breite Hypothese zurückgestellt. Weiter mit der engeren H-02.');
+    if (missing.length) { flash('warn', 'Zuerst in Schritt 5 die Recherche starten.'); emit(); return; }
+    actions.updateHyp('H-01', { status: 'novelty_rejected', source_ids: ['PAT-01', 'ALT-01'], reason: 'Die Idee steht schon in einem Patent (PAT-01) und wird bereits verkauft (ALT-01). Deshalb zurückgestellt. Weiter mit der engeren Idee H-02.' }, 'Gegenbeleg geprüft');
+    flash('ok', 'H-01 zurückgestellt: gibt es schon. Weiter mit H-02.');
     emit();
   },
   linkSource(hid, sid) {

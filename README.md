@@ -87,11 +87,14 @@ Also checked: unknown PDF upload (text extracted, no seed metadata, manual capab
 
 ## Demo walkthrough (6–8 min)
 
+Step-by-step click instructions for testing: see `TEST_GUIDE.md`.
+
+
 1. **Auftrag (1 min).** Show the question, empty budget = „unbekannt“, public Ergo-Tec sources (curated) and the note that test fixtures are already in the portfolio. Confirm scope.
 2. **Unternehmensprofil (2 min).** „Musterdokument übernehmen“ IDEE-01 → 4 cards with verified quotes; click „IDEE-01 · Seite 2“ to show the original page. Confirm CAP-01/03/04, correct CAP-02. Q-01: choose „Eigenentwicklung“ → separate *Kundenaussage*, then switch to „Integration“ → claim disappears. Point to „Was die Akte nicht belegt“.
 3. **Anwendungsfelder (1 min).** Abstraction chain; untick CAP-03 → both fields go inactive with reason; tick again. Select SF-01 (component, not a full test machine).
 4. **Rechercheplan (1 min).** Edit terms; add „UL-01“ to show the identifier guard; remove; confirm plan.
-5. **Recherche (2 min).** „Recherche starten (live)“ → TED and Crossref live with counts, times, original links (open one TED notice); the patent tab shows PAT-01 from the prepared patent set with its problem card (live EPO results once keys are set). Separate test „Kaltplasma, Bodenreinigung“ → PAT-02 corrects the novelty claim; „Photovoltaik Wechselrichter“ → 0 patents.
+5. **Recherche (2 min).** „Recherche starten“ → patents, tenders, articles and products; open the patent problem card for WO2021055483A1. Optional 1-minute example: „Beispiel prüfen“ (Kaltplasma) shows how a „this is new“ claim is checked against a real patent and links back to Ergo-Tec's mechanics (CAP-01, CAP-03).
 6. **Chancen (1 min).** „Gegenbelege prüfen“ on H-01 → novelty rejected. H-02: dimensions, priority blocked. Load matching case → „Transfer offen“; toggle alternative → deferred, history kept.
 7. **Übergabe.** Open the report in a new tab. Close with: full opportunity validation requires a confirmed company profile and independent current demand evidence.
 
