@@ -4,7 +4,7 @@
 <body><h1>IDEE Regeltests (Browser)</h1><pre id="out">läuft …</pre>
 <script type="module">
   const lines = []; const orig = console.log; console.log = (...a) => { lines.push(a.join(' ')); orig(...a); };
-  const m = await import('/tests/rules.test.js').catch(e => ({ summary: { pass: 0, fail: 1, results: [['FAIL', e.message]] } }));
+  const m = await import('../tests/rules.test.js').catch(e => ({ summary: { pass: 0, fail: 1, results: [['FAIL', e.message]] } }));
   document.getElementById('out').textContent = lines.join('\n') || JSON.stringify(m.summary, null, 2);
   document.title = m.summary.fail ? 'FAIL' : 'PASS';
 </script></body></html>

@@ -1,6 +1,6 @@
 # DEVOREO / IDEE – Innovation Discovery Engine (functional prototype)
 
-> **▶ Demo zum Durchklicken:** https://claude.ai/artifact/9HNXQMZyyqLtQXvS1yCYyB
+> **▶ Demo zum Durchklicken:** https://ksteri.github.io/idee-demo/
 > (Online-Version ohne Server; Recherche läuft auf vorbereiteten echten Quellen.)
 > **Testanleitung:** [TEST_GUIDE.md](TEST_GUIDE.md)
 
