@@ -1,5 +1,9 @@
 # DEVOREO / IDEE – Innovation Discovery Engine (functional prototype)
 
+> **▶ Demo zum Durchklicken:** https://claude.ai/artifact/9HNXQMZyyqLtQXvS1yCYyB
+> (Online-Version ohne Server; Recherche läuft auf vorbereiteten echten Quellen.)
+> **Testanleitung:** [TEST_GUIDE.md](TEST_GUIDE.md)
+
 German-language interactive prototype for the Ergo-Tec client demo (27 Nov 2026). Internal prototype; all company data is **synthetic**. The original kit notes are in `KIT_NOTES.md`; the build brief is `CLAUDE_BUILD_PROMPT.md`.
 
 ## Start
