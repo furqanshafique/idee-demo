@@ -3,7 +3,7 @@
 
 > **Testanleitung:** [TEST_GUIDE.md](TEST_GUIDE.md)
 
-German-language interactive prototype for the Ergo-Tec client demo (27 Nov 2026). Internal prototype; all company data is **synthetic**. The original kit notes are in `KIT_NOTES.md`; the build brief is `CLAUDE_BUILD_PROMPT.md`.
+Interactive prototype for the Ergo-Tec client demo (27 Nov 2026). The UI is German by default; the **DE | EN** switch in the header changes it to English, and the choice is saved in that browser only (`localStorage` key `devoreo.lang`, kept when the demo is reset). Verbatim PDF quotes stay in German in both languages, because they are verified against the original documents. Internal prototype; all company data is **synthetic**. The original kit notes are in `KIT_NOTES.md`; the build brief is `CLAUDE_BUILD_PROMPT.md`.
 
 ## Start
 
@@ -38,7 +38,7 @@ Restart the server after editing `.env`.
 ## Tests
 
 ```bash
-./tests/run_tests.sh        # 23 rule unit tests (JavaScriptCore) + 12 server tests (offline)
+./tests/run_tests.sh        # 23 rule + 7 translation unit tests (JavaScriptCore) + 12 server tests (offline)
 python3 tests/live_smoke.py # real calls to TED, Crossref, EPO (network; EPO = BLOCKED without keys)
 ```
 
@@ -51,6 +51,7 @@ The rule tests also run in the browser: http://127.0.0.1:8770/app/tests.html (ta
 | `server/server.py` | Static files (only `app/`, `data/`, `documents/`, `tests/`) + `/api/status`, `/api/search`, `/api/extract`. Rate limit 40 external calls/min, body cap, no generic URL fetch. |
 | `server/providers.py` | Allowlisted providers: Crossref, TED v3, EPO OPS 3.2, Anthropic (optional). Query guard (≤200 chars, blocks internal identifiers such as UL-01, BeispielMed, MH-A, PB-17 …), text sanitizing, normalized results. |
 | `app/js/rules.js` | Pure business rules: quote verification, field eligibility, Q-01 handling, curated matching, demand-signal and hypothesis assessment, matching case. |
+| `app/js/i18n.js` | UI language: `L(de, en)` for inline view text, `tr()` dictionary/pattern lookup for German text from seed data, rules and store. Unknown text (user input, search results, PDF quotes) is shown unchanged. |
 | `app/js/store.js` | State, versioning (profile, plan, runs, hypotheses), actions; `localStorage` key `devoreo.idee.demo.v1`. |
 | `app/js/research.js` | Live runs via the proxy; offline runs over `data/public_sources.json`. Never mixed, no fallback. |
 | `app/js/pdftext.js` | pdf.js text extraction per page + SHA-256. |

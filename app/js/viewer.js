@@ -1,4 +1,5 @@
 // Renders the ORIGINAL PDF files with pdf.js (no fake previews).
+import { L } from './i18n.js';
 const pdfjs = window.pdfjsLib;
 pdfjs.GlobalWorkerOptions.workerSrc = './vendor/pdf.worker.min.js';
 
@@ -7,7 +8,7 @@ let token = 0;
 
 export async function renderPdf(host, url, page) {
   const my = ++token;
-  host.innerHTML = '<div class="viewer-loading">Dokument wird geladen …</div>';
+  host.innerHTML = `<div class="viewer-loading">${L('Dokument wird geladen …', 'Loading document …')}</div>`;
   try {
     if (!cache.has(url)) cache.set(url, pdfjs.getDocument({ url }).promise);
     const doc = await cache.get(url);
@@ -29,7 +30,7 @@ export async function renderPdf(host, url, page) {
     return { pages: doc.numPages, page: n };
   } catch (e) {
     cache.delete(url);
-    if (my === token) host.innerHTML = `<div class="viewer-missing"><strong>Lokale Datei nicht verfügbar.</strong><br>${e.message || e}</div>`;
+    if (my === token) host.innerHTML = `<div class="viewer-missing"><strong>${L('Lokale Datei nicht verfügbar.', 'Local file not available.')}</strong><br>${e.message || e}</div>`;
     return null;
   }
 }

@@ -1,4 +1,5 @@
 // Real PDF parsing (pdf.js): SHA-256 of the bytes + text per page.
+import { L } from './i18n.js';
 const pdfjs = window.pdfjsLib;
 pdfjs.GlobalWorkerOptions.workerSrc = './vendor/pdf.worker.min.js';
 
@@ -15,16 +16,16 @@ export function looksLikePdf(bytes) {
   return head.includes('%PDF-');
 }
 
-// Returns { sha256, pages, pageTexts } or throws a German error message.
+// Returns { sha256, pages, pageTexts } or throws an error message in the UI language.
 export async function readPdf(bytes) {
-  if (bytes.byteLength > MAX_FILE_BYTES) throw new Error('Datei größer als 15 MB.');
-  if (!looksLikePdf(bytes)) throw new Error('Keine PDF-Datei (Signatur %PDF fehlt). Nur PDF wird unterstützt.');
+  if (bytes.byteLength > MAX_FILE_BYTES) throw new Error(L('Datei größer als 15 MB.', 'File larger than 15 MB.'));
+  if (!looksLikePdf(bytes)) throw new Error(L('Keine PDF-Datei (Signatur %PDF fehlt). Nur PDF wird unterstützt.', 'Not a PDF file (%PDF signature missing). Only PDF is supported.'));
   const sha256 = await sha256Hex(bytes);
   let doc;
   try {
     doc = await pdfjs.getDocument({ data: bytes.slice(0), isEvalSupported: false }).promise;
   } catch (e) {
-    throw new Error(`PDF nicht lesbar: ${e.message || e}`);
+    throw new Error(`${L('PDF nicht lesbar', 'PDF not readable')}: ${e.message || e}`);
   }
   const n = Math.min(doc.numPages, MAX_PAGES);
   const pageTexts = [];

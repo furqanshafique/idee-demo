@@ -7,6 +7,7 @@ import { fetchStatus, startLive, startOffline, planSpecs } from './research.js';
 import { checkQuery, validateExtraction } from './rules.js';
 import { buildHtml, buildJson, download } from './export.js';
 import { fileUrl } from './base.js';
+import { L, tr, setLang, applyDocLang } from './i18n.js';
 
 const $ = sel => document.querySelector(sel);
 const { actions } = store;
@@ -53,23 +54,23 @@ async function renderViewer() {
   const info = docInfo(v.docId);
   const quotes = store.getState().capabilities.filter(c => c.source?.document_id === v.docId && c.source.page === v.page);
   box.innerHTML = `
-    <header><div><small>Originaldokument ${info?.doc?.synthetic !== false ? '· synthetisch' : ''}</small><strong>${esc(info?.title || v.docId)}</strong></div>
-      <button class="btn ghost sm" data-act="close-viewer" aria-label="Schließen">×</button></header>
+    <header><div><small>${L('Originaldokument', 'Original document')} ${info?.doc?.synthetic !== false ? L('· synthetisch', '· synthetic') : ''}</small><strong>${esc(info?.title || v.docId)}</strong></div>
+      <button class="btn ghost sm" data-act="close-viewer" aria-label="${L('Schließen', 'Close')}">×</button></header>
     <div class="viewer-nav">
-      <button class="btn ghost sm" data-act="viewer-page" data-d="-1">‹</button><span id="vp">Seite ${v.page}</span>
+      <button class="btn ghost sm" data-act="viewer-page" data-d="-1">‹</button><span id="vp">${L('Seite', 'Page')} ${v.page}</span>
       <button class="btn ghost sm" data-act="viewer-page" data-d="1">›</button>
-      ${info?.url ? `<a class="link" href="${info.url}#page=${v.page}" target="_blank" rel="noopener">In neuem Tab öffnen</a>` : ''}
+      ${info?.url ? `<a class="link" href="${info.url}#page=${v.page}" target="_blank" rel="noopener">${L('In neuem Tab öffnen', 'Open in new tab')}</a>` : ''}
     </div>
     ${quotes.length ? `<div class="vquotes">${quotes.map(c => `<div><code>${esc(c.id)}</code> „${esc(c.source.quote)}“</div>`).join('')}</div>` : ''}
     <div id="vcanvas" class="viewer-canvas"></div>`;
   const host = $('#vcanvas');
   if (!info?.url) {
-    host.innerHTML = '<div class="viewer-missing"><strong>Upload nicht mehr im Speicher.</strong><br>Hochgeladene Dateien werden nur für die laufende Sitzung gehalten (Text und Hash bleiben gespeichert). Datei erneut hochladen, um sie anzuzeigen.</div>';
+    host.innerHTML = `<div class="viewer-missing">${L('<strong>Upload nicht mehr im Speicher.</strong><br>Hochgeladene Dateien werden nur für die laufende Sitzung gehalten (Text und Hash bleiben gespeichert). Datei erneut hochladen, um sie anzuzeigen.', '<strong>Upload no longer in memory.</strong><br>Uploaded files are only kept for the current session (text and hash stay saved). Upload the file again to view it.')}</div>`;
     return;
   }
   const res = await renderPdf(host, info.url, v.page);
   const label = $('#vp');
-  if (res && label) { label.textContent = `Seite ${res.page} / ${res.pages}`; v.pages = res.pages; }
+  if (res && label) { label.textContent = `${L('Seite', 'Page')} ${res.page} / ${res.pages}`; v.pages = res.pages; }
 }
 function openDoc(docId, page) {
   store.setUi({ viewer: { docId, page: Number(page) || 1 } }, false);
@@ -78,12 +79,12 @@ function openDoc(docId, page) {
 
 // ------------------------------------------------------------ import
 async function importBytes(name, bytes, blobUrl) {
-  runtime.busy = `${name}: PDF wird gelesen (pdf.js) …`; render();
+  runtime.busy = `${name}: ${L('PDF wird gelesen (pdf.js) …', 'reading PDF (pdf.js) …')}`; render();
   try {
     const parsed = await readPdf(bytes);
     const rec = actions.addDocument({ name, size: bytes.byteLength, ...parsed });
     if (blobUrl && rec && !rec.known) runtime.blobs[rec.id] = blobUrl;
-    if (parsed.truncated) store.flashMsg('warn', `Nur die ersten Seiten wurden gelesen (Limit).`);
+    if (parsed.truncated) store.flashMsg('warn', L('Nur die ersten Seiten wurden gelesen (Limit).', 'Only the first pages were read (limit).'));
     return rec;
   } catch (e) {
     store.flashMsg('error', `${name}: ${e.message}`);
@@ -93,7 +94,7 @@ async function importBytes(name, bytes, blobUrl) {
 async function importSample(id) {
   const d = store.seedDoc(id);
   const r = await fetch(fileUrl(d.file), { cache: 'no-store' });
-  if (!r.ok) return store.flashMsg('error', `${d.file} nicht ladbar (HTTP ${r.status}).`);
+  if (!r.ok) return store.flashMsg('error', L(`${d.file} nicht ladbar (HTTP ${r.status}).`, `${d.file} could not be loaded (HTTP ${r.status}).`));
   const rec = await importBytes(d.file.split('/').pop(), new Uint8Array(await r.arrayBuffer()));
   if (rec && id !== 'IDEE-03') openDoc(id, 1);
   return rec;
@@ -111,6 +112,7 @@ document.addEventListener('click', async e => {
   const s = store.getState();
   switch (act) {
     case 'goto': return actions.goto(Number(el.dataset.step));
+    case 'lang': setLang(el.dataset.lang); viewerKey = null; render(); return renderViewer();
     case 'flash-x': return store.setUi({ flash: null });
     case 'reset-ask': return store.setUi({ confirmReset: true });
     case 'reset-no': return store.setUi({ confirmReset: false });
@@ -128,7 +130,14 @@ document.addEventListener('click', async e => {
     case 'cap-decide': return actions.setCapDecision(el.dataset.id, el.dataset.d);
     case 'cap-edit': return store.setUi({ edit: el.dataset.id });
     case 'cap-cancel': return store.setUi({ edit: null });
-    case 'cap-save': return actions.correctCap(el.dataset.id, { title: val('ed-title').trim() || undefined, control: val('ed-control'), transfer: val('ed-transfer'), note: val('ed-note').trim() });
+    case 'cap-save': {
+      // An unchanged (possibly translated) title keeps the stored original.
+      const c = s.capabilities.find(x => x.id === el.dataset.id);
+      const title = val('ed-title').trim();
+      const patch = { control: val('ed-control'), transfer: val('ed-transfer'), note: val('ed-note').trim() };
+      if (title && title !== tr(c?.title)) patch.title = title;
+      return actions.correctCap(el.dataset.id, patch);
+    }
     case 'goto-cap': {
       actions.goto(2);
       requestAnimationFrame(() => document.getElementById(`cap-${el.dataset.id}`)?.scrollIntoView({ block: 'center' }));
@@ -137,17 +146,17 @@ document.addEventListener('click', async e => {
     case 'q3-commit': return actions.commitQ03();
     case 'manual-cap': return actions.addManualCap({ docId: val('mc-doc'), page: val('mc-page'), quote: val('mc-quote'), title: val('mc-title') });
     case 'llm-extract': {
-      if (!document.getElementById('llm-ok')?.checked) return store.flashMsg('warn', 'Bitte zuerst die Übermittlung ausdrücklich freigeben.');
+      if (!document.getElementById('llm-ok')?.checked) return store.flashMsg('warn', L('Bitte zuerst die Übermittlung ausdrücklich freigeben.', 'Please explicitly approve the transfer first.'));
       const doc = s.documents.find(d => d.id === el.dataset.doc);
-      runtime.busy = 'KI-Extraktion läuft …'; render();
+      runtime.busy = L('KI-Extraktion läuft …', 'AI extraction running …'); render();
       try {
         const r = await fetch('/api/extract', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ doc_id: doc.id, approved: true, pages: doc.pageTexts }) });
         const body = await r.json();
-        if (body.status !== 'succeeded') return store.flashMsg('error', `KI-Extraktion: ${body.error || body.status}`);
+        if (body.status !== 'succeeded') return store.flashMsg('error', `${L('KI-Extraktion', 'AI extraction')}: ${tr(body.error) || body.status}`);
         const v = validateExtraction(body.data, doc.pages);
         actions.addLlmCandidates(doc.id, v.items, body.model);
-        if (!v.ok) store.flashMsg('warn', `Schemafehler verworfen: ${v.errors.join('; ')}`);
-      } catch (err) { store.flashMsg('error', `KI-Extraktion fehlgeschlagen: ${err.message}`); } finally { runtime.busy = null; render(); }
+        if (!v.ok) store.flashMsg('warn', `${L('Schemafehler verworfen', 'Schema errors discarded')}: ${v.errors.map(tr).join('; ')}`);
+      } catch (err) { store.flashMsg('error', `${L('KI-Extraktion fehlgeschlagen', 'AI extraction failed')}: ${err.message}`); } finally { runtime.busy = null; render(); }
       return;
     }
     case 'field-toggle': return actions.toggleField(el.dataset.id);
@@ -158,7 +167,7 @@ document.addEventListener('click', async e => {
       const p = s.plan;
       const specs = planSpecs(p);
       const bad = specs.map(sp => checkQuery(sp.query)).find(r => !r.ok);
-      if (bad) return store.flashMsg('error', bad.error);
+      if (bad) return store.flashMsg('error', bad.error); // translated when rendered
       await startLive({ specs, limit: p.cap, timeout: p.timeout, label: `${p.fieldId} Plan v${p.version}` });
       return refreshStatus();
     }
@@ -175,16 +184,23 @@ document.addEventListener('click', async e => {
     case 'h01-review': return actions.reviewH01();
     case 'hyp-save': {
       const id = el.dataset.id;
-      return actions.updateHyp(id, { buyer: val(`h-buyer-${id}`), deliverable: val(`h-deliv-${id}`), alternative: val(`h-alt-${id}`), questions: val(`h-q-${id}`).split('\n').map(x => x.trim()).filter(Boolean) }, 'Felder bearbeitet');
+      // Unchanged (possibly translated) values keep the stored original text.
+      const h = s.hypotheses.find(x => x.id === id);
+      const keep = (v, orig) => (v === tr(orig) ? orig : v);
+      const qs = val(`h-q-${id}`).split('\n').map(x => x.trim()).filter(Boolean);
+      return actions.updateHyp(id, {
+        buyer: keep(val(`h-buyer-${id}`), h.buyer), deliverable: keep(val(`h-deliv-${id}`), h.deliverable), alternative: keep(val(`h-alt-${id}`), h.alternative),
+        questions: qs.map(q => h.questions.find(o => tr(o) === q) ?? q),
+      }, 'Felder bearbeitet');
     }
     case 'hyp-add': return actions.addHyp({ title: val('nh-title'), buyer: val('nh-buyer'), deliverable: val('nh-deliv'), alternative: val('nh-alt'), capability_ids: [...document.querySelectorAll('.nh-cap:checked')].map(x => x.value) });
     case 'matching-load': {
       for (const id of ['IDEE-02', 'IDEE-03']) if (!s.documents.some(d => d.id === id)) await importSample(id);
       const cap5 = store.getState().capabilities.find(c => c.id === 'CAP-05');
-      if (!cap5) return store.flashMsg('error', 'CAP-05 konnte nicht verifiziert werden – Matchingfall nicht geladen.');
+      if (!cap5) return store.flashMsg('error', L('CAP-05 konnte nicht verifiziert werden – Matchingfall nicht geladen.', 'CAP-05 could not be verified – matching case not loaded.'));
       actions.loadMatching(); return actions.goto(6);
     }
-    case 'export-html': return download(`IDEE_${s.project.id}_Zusammenfassung_v${s.profile.version}.html`, buildHtml(), 'text/html');
+    case 'export-html': return download(`IDEE_${s.project.id}_${L('Zusammenfassung', 'Summary')}_v${s.profile.version}.html`, buildHtml(), 'text/html');
     case 'export-json': return download(`IDEE_${s.project.id}_v${s.profile.version}.json`, JSON.stringify(buildJson(), null, 2), 'application/json');
     case 'export-view': return store.setUi({ showReport: !store.getUi().showReport });
     default:
@@ -197,7 +213,7 @@ document.addEventListener('change', async e => {
   if (act === 'upload') {
     const f = el.files?.[0];
     if (!f) return;
-    if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { el.value = ''; return store.flashMsg('error', `${f.name}: Dateityp nicht unterstützt (nur PDF).`); }
+    if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { el.value = ''; return store.flashMsg('error', `${f.name}: ${L('Dateityp nicht unterstützt (nur PDF).', 'file type not supported (PDF only).')}`); }
     const bytes = new Uint8Array(await f.arrayBuffer());
     await importBytes(f.name, bytes, URL.createObjectURL(f));
     el.value = '';
@@ -225,6 +241,7 @@ document.addEventListener('input', e => {
 
 // ------------------------------------------------------------ boot
 (async function boot() {
+  applyDocLang();
   try {
     const get = p => fetch(p, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(`${p}: HTTP ${r.status}`); return r.json(); });
     const [seed, publicSources] = await Promise.all([get(fileUrl('data/seed.json')), get(fileUrl('data/public_sources.json'))]);
@@ -234,6 +251,6 @@ document.addEventListener('input', e => {
     await refreshStatus();
     window.__idee = { store, actions };
   } catch (e) {
-    $('#main').innerHTML = `<div class="fatal"><b>App konnte nicht starten.</b><br>${esc(e.message)}<br>Lokal: <code>python3 server/server.py</code> starten und <code>http://127.0.0.1:8770/app/</code> öffnen.</div>`;
+    $('#main').innerHTML = `<div class="fatal"><b>${L('App konnte nicht starten.', 'App could not start.')}</b><br>${esc(e.message)}<br>${L('Lokal: <code>python3 server/server.py</code> starten und <code>http://127.0.0.1:8770/app/</code> öffnen.', 'Locally: start <code>python3 server/server.py</code> and open <code>http://127.0.0.1:8770/app/</code>.')}</div>`;
   }
 })();
