@@ -27,12 +27,25 @@ export function buildHtml() {
   const link = u => (/^https:\/\//.test(u || '') ? `<a href="${esc(u)}">${esc(u)}</a>` : '–');
   const deferred = s.hypotheses.filter(h => ['deferred', 'novelty_rejected', 'rejected'].includes(h.status));
   return `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>IDEE Recherche-Zusammenfassung ${esc(s.project.id)}</title>
-<style>body{font:14px/1.5 system-ui,sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#18222d}h1{font-size:22px}h2{font-size:17px;margin-top:28px;border-bottom:1px solid #ddd}
-.disc{background:#7c2d12;color:#fff;padding:10px 14px;border-radius:6px;font-weight:600}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:5px 7px;text-align:left;vertical-align:top}code{background:#eef;padding:0 3px}
-.live{color:#0f766e;font-weight:600}.cur{color:#92400e;font-weight:600}</style></head><body>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font:14px/1.55 "Inter","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;max-width:960px;margin:32px auto;padding:0 24px 48px;color:#101828;background:#fff;-webkit-font-smoothing:antialiased}
+h1{font-size:24px;font-weight:650;letter-spacing:-.015em;margin:24px 0 6px}
+h2{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#667085;margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid #e4e7ec}
+h3{font-size:15px;font-weight:600;margin:20px 0 6px}
+p{margin:6px 0;color:#344054}.meta{color:#667085;font-size:13px}
+a{color:#0b5953;text-underline-offset:3px;word-break:break-all}
+.disc{background:#fcf6e8;color:#6f4a0f;padding:12px 16px;border-radius:8px;font-weight:550;font-size:13.5px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0}
+th{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#667085;background:#f9fafb;border-bottom:1px solid #e4e7ec;padding:8px 10px;text-align:left}
+td{border-bottom:1px solid #eef0f3;padding:8px 10px;text-align:left;vertical-align:top}
+ul{padding-left:20px;color:#344054}li+li{margin-top:4px}
+.live{color:#1a7f45;font-weight:600}.cur{color:#946016;font-weight:600}
+@media print{body{margin:0;max-width:none}.disc{border:1px solid #ecd9a8}a{color:inherit}}
+</style></head><body>
 <div class="disc">${esc(DISCLAIMER)}</div>
-<h1>DEVOREO / IDEE – Recherche-Zusammenfassung</h1>
-<p>Projekt <b>${esc(s.project.id)}</b> · ${esc(s.project.case)} · Profilversion <b>v${s.profile.version}</b> · Plan ${s.plan ? 'v' + s.plan.version : '–'} · exportiert ${new Date().toLocaleString('de-DE')}</p>
+<h1>Devoreo IDEE – Recherche-Zusammenfassung</h1>
+<p class="meta">Projekt <b>${esc(s.project.id)}</b> · ${esc(s.project.case)} · Profilversion <b>v${s.profile.version}</b> · Plan ${s.plan ? 'v' + s.plan.version : '–'} · exportiert ${new Date().toLocaleString('de-DE')}</p>
 <h2>Auftrag</h2><p>${esc(s.project.goal)} · Region: ${esc(s.project.region)} · Budget: ${s.project.pilot_budget_eur ?? 'unbekannt'}</p>
 <h2>Fähigkeiten (Demo-Profil, synthetisch)</h2><table><tr><th>ID</th><th>Titel</th><th>Herkunft</th><th>Status</th><th>Beleg</th></tr>
 ${s.capabilities.map(c => `<tr><td>${esc(c.id)}</td><td>${esc(c.title)}</td><td>${esc(R.ORIGIN[c.origin])}</td><td>${esc(R.CONFIRMATION[c.confirmation])}</td><td>${c.source?.quote ? `${esc(c.source.document_id)} S.${c.source.page}: „${esc(c.source.quote)}“ (${c.verified ? 'verifiziert' : 'nicht verifiziert'}; ${esc(c.method)})` : 'Interview, Nachweis ausstehend'}</td></tr>`).join('')}</table>

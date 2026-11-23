@@ -7,14 +7,15 @@ set -e
 OUT="${1:?usage: tools/build_hosted.sh <output-dir>}"
 cd "$(dirname "$0")/.."
 rm -rf "$OUT"; mkdir -p "$OUT/data" "$OUT/documents"
-cp -R app/js app/vendor app/styles.css "$OUT/"
+cp -R app/js app/vendor app/fonts app/theme.css app/styles.css app/favicon.svg "$OUT/"
 cp data/seed.json data/public_sources.json "$OUT/data/"
 cp documents/*.pdf "$OUT/documents/"
 # The artifact host adds the html/head/body skeleton itself.
 cat > "$OUT/index.html" <<'HTML'
 <title>Devoreo IDEE Prototyp</title>
 <meta name="devoreo-base" content=".">
-<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="theme.css">
 <script src="vendor/pdf.min.js"></script>
 <div id="header"></div>
 <div class="layout">

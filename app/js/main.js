@@ -110,7 +110,13 @@ document.addEventListener('click', async e => {
   const { act } = el.dataset;
   const s = store.getState();
   switch (act) {
-    case 'goto': return actions.goto(Number(el.dataset.step));
+    case 'goto': {
+      // A new step starts clean: the source panel and the last step's message
+      // belong to the screen they were opened on.
+      const step = Number(el.dataset.step);
+      if (step !== store.getUi().step) store.setUi({ viewer: null, flash: null }, false);
+      return actions.goto(step);
+    }
     case 'flash-x': return store.setUi({ flash: null });
     case 'reset-ask': return store.setUi({ confirmReset: true });
     case 'reset-no': return store.setUi({ confirmReset: false });
@@ -130,6 +136,7 @@ document.addEventListener('click', async e => {
     case 'cap-cancel': return store.setUi({ edit: null });
     case 'cap-save': return actions.correctCap(el.dataset.id, { title: val('ed-title').trim() || undefined, control: val('ed-control'), transfer: val('ed-transfer'), note: val('ed-note').trim() });
     case 'goto-cap': {
+      store.setUi({ flash: null }, false);
       actions.goto(2);
       requestAnimationFrame(() => document.getElementById(`cap-${el.dataset.id}`)?.scrollIntoView({ block: 'center' }));
       return;

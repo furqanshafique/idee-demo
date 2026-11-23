@@ -36,21 +36,25 @@ const STEPS = [
 export function header() {
   const s = store.getState();
   const st = runtime.status;
+  // Source status in the header: says up front which sources search live and
+  // which use the prepared set, so nobody mistakes one for the other.
   const chip = (k, label) => {
-    const v = st?.ok ? st.providers[k]?.status : st?.static ? 'demo' : 'offline';
-    const tone = v === 'ready' ? 'ok' : v === 'not_configured' || v === 'demo' ? 'warn' : 'bad';
-    const text = v === 'ready' ? 'bereit' : v === 'demo' ? 'Demo-Bestand' : v === 'not_configured' ? (k === 'epo' ? 'Demo-Bestand' : 'nicht konfiguriert') : 'Server fehlt';
-    return `<span class="pchip ${tone}" title="${esc(st?.ok ? st.providers[k]?.label : st?.error || '')}">${esc(label)}: ${text}</span>`;
+    const v = st?.ok ? st.providers[k]?.status : st?.static ? 'demo' : st ? 'offline' : 'loading';
+    const tone = v === 'ready' ? 'ok' : v === 'not_configured' || v === 'demo' ? 'warn' : v === 'loading' ? 'neutral' : 'bad';
+    const text = v === 'ready' ? 'live' : v === 'demo' ? 'vorbereitet' : v === 'not_configured' ? (k === 'epo' ? 'vorbereitet' : 'nicht konfiguriert') : v === 'loading' ? '…' : 'Server fehlt';
+    const title = st?.ok ? `${st.providers[k]?.label}: ${text}` : st?.static ? 'Online-Version: vorbereitete Quellen' : st?.error || '';
+    return `<span class="pchip ${tone}" title="${esc(title)}">${esc(label)} <b>${text}</b></span>`;
   };
   const confirming = store.getUi().confirmReset;
   return `
-  <div class="demo-strip">DEMO · Beispieldaten sind erfunden – keine echten Ergo-Tec-Daten</div>
+  <div class="demo-strip">Demo · Beispieldaten sind erfunden – keine echten Ergo-Tec-Daten</div>
   <div class="topbar">
-    <div class="brand"><div class="logo">D</div><div><strong>DEVOREO / IDEE</strong><small>Innovation Discovery Engine</small></div></div>
+    <div class="brand"><div class="logo" aria-hidden="true">D</div><div><strong>Devoreo</strong><small>IDEE · Innovation Discovery Engine</small></div></div>
     <div class="ctx">
-      <div class="ctx-item"><small>Projekt</small><strong title="${esc(s.project.case)}">${esc(s.project.id)} · ${esc(s.project.company)} (Demo)</strong></div>
+      <div class="ctx-item"><small>Projekt</small><strong title="${esc(s.project.case)}">${esc(s.project.company)} <span class="muted">(Demo)</span></strong></div>
       <div class="ctx-item"><small>Profilstand</small><strong>v${s.profile.version}</strong></div>
     </div>
+    <div class="pchips" aria-label="Datenquellen">${chip('epo', 'Patente')}${chip('ted', 'Ausschreibungen')}${chip('crossref', 'Fachartikel')}</div>
     <div class="tools">
       ${confirming
         ? `<span class="confirm-reset">Alle Demo-Daten löschen? <button class="btn sm danger" data-act="reset-yes">Ja, zurücksetzen</button><button class="btn sm ghost" data-act="reset-no">Abbrechen</button></span>`
@@ -61,10 +65,21 @@ export function header() {
 
 export function nav() {
   const cur = store.getUi().step;
-  return STEPS.map(([n, label, preview]) => `
-    <button class="nav-item ${n === cur ? 'active' : ''}" data-act="goto" data-step="${n}">
-      <span class="num">${n}</span><span>${label}${preview ? ' <em class="pv">Vorschau</em>' : ''}</span><i class="dot ${store.stepStatus(n)}"></i>
-    </button>`).join('') ;
+  const main = STEPS.filter(x => !x[2]);
+  const done = main.filter(([n]) => store.stepStatus(n) === 'done').length;
+  const item = ([n, label]) => {
+    const st = store.stepStatus(n);
+    const stLabel = { done: 'erledigt', work: 'in Arbeit', todo: 'offen', info: 'Vorschau' }[st] || st;
+    return `
+    <button class="nav-item ${n === cur ? 'active' : ''} ${st}" data-act="goto" data-step="${n}" ${n === cur ? 'aria-current="step"' : ''}>
+      <span class="num">${st === 'done' && n !== cur ? '✓' : n}</span><span class="nav-label">${label}</span><i class="dot ${st}" title="${stLabel}"></i>
+    </button>`;
+  };
+  return `
+    <div class="nav-progress"><span>Fortschritt</span><b>${done} / ${main.length}</b><div class="track"><i style="width:${Math.round(100 * done / main.length)}%"></i></div></div>
+    <div class="nav-group">${main.map(item).join('')}</div>
+    <div class="nav-title">Vorschau</div>
+    <div class="nav-group">${STEPS.filter(x => x[2]).map(item).join('')}</div>`;
 }
 
 export function flash() {
@@ -84,7 +99,7 @@ function s1() {
   const pubs = ['PUB-ET-MED', 'PUB-ET-IND'].map(store.publicSource);
   const ro = p.confirmed ? 'disabled' : '';
   return `
-  <div class="page-head"><div><h2>1 · Auftrag</h2><p class="lead">„Welche weiteren Leistungen können wir mit unseren vorhandenen Kompetenzen anbieten?“</p></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 1</span>Auftrag</h2><p class="lead">„Welche weiteren Leistungen können wir mit unseren vorhandenen Kompetenzen anbieten?“</p></div>
     ${p.confirmed ? badge('ok', `Umfang bestätigt ${fmtTime(p.confirmedAt)}`) : badge('warn', 'Umfang noch nicht bestätigt')}</div>
   <div class="grid2">
     <section class="card">
@@ -169,7 +184,7 @@ function s2() {
   const q3 = a['Q-03'];
   const anth = runtime.status?.providers?.anthropic?.status;
   return `
-  <div class="page-head"><div><h2>2 · Unternehmensprofil</h2><p class="lead">Was das Team im Beispielauftrag UL-01 nachweislich gemacht hat – jeweils mit Textstelle.</p></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 2</span>Unternehmensprofil</h2><p class="lead">Was das Team im Beispielauftrag UL-01 nachweislich gemacht hat – jeweils mit Textstelle.</p></div>
     ${badge('neutral', `Profilstand v${s.profile.version}`)}</div>
   <section class="card">
     <header><h3>Dokumente</h3>${prov.syn()}</header>
@@ -246,7 +261,7 @@ function s3() {
   const fields = s.fields.map(f => ({ f, e: store.eligibility(f) }));
   const steps = s.capabilities.filter(c => c.verified && c.source?.quote);
   return `
-  <div class="page-head"><div><h2>3 · Anwendungsfelder</h2><p class="lead">Vom Beispielauftrag zur Frage: Wem könnte Ergo-Tec dieses Können noch verkaufen?</p></div></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 3</span>Anwendungsfelder</h2><p class="lead">Vom Beispielauftrag zur Frage: Wem könnte Ergo-Tec dieses Können noch verkaufen?</p></div></div>
   <section class="card">
     <header><h3>Vom Auftrag zur Idee</h3></header>
     <div class="chain4">
@@ -290,7 +305,7 @@ function s4() {
   const sel = s.selectedFieldIds.map(id => s.fields.find(f => f.id === id));
   const p = s.plan;
   const st = runtime.status;
-  if (!sel.length) return `<div class="page-head"><h2>4 · Rechercheplan</h2></div><p class="empty">Zuerst in Schritt 3 eine Idee auswählen.</p>`;
+  if (!sel.length) return `<div class="page-head"><h2><span class="eyebrow">Schritt 4</span>Rechercheplan</h2></div><p class="empty">Zuerst in Schritt 3 eine Idee auswählen.</p>`;
   const epoReady = st?.ok && st.providers.epo.status === 'ready';
   const termRow = (key, label, provider) => {
     const chk = R.checkQuery(p.terms[key]);
@@ -300,7 +315,7 @@ function s4() {
       <td><label class="switch"><input type="checkbox" data-act="plan-provider" data-p="${provider}" ${p.providers[provider] ? 'checked' : ''}> aktiv</label></td></tr>`;
   };
   return `
-  <div class="page-head"><div><h2>4 · Rechercheplan</h2><p class="lead">Nur allgemeine Fachbegriffe gehen nach außen – keine Namen, Produkte oder Dokumente.</p></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 4</span>Rechercheplan</h2><p class="lead">Nur allgemeine Fachbegriffe gehen nach außen – keine Namen, Produkte oder Dokumente.</p></div>
     ${p?.confirmed ? badge('ok', `Plan v${p.version} bestätigt ${fmtTime(p.confirmedAt)}`) : badge('warn', 'Plan nicht bestätigt')}</div>
   <section class="card">
     <header><h3>Suchfeld</h3></header>
@@ -384,7 +399,7 @@ function s5() {
   const years = R.signalsByYear(research);
   const hyps = s.hypotheses;
   return `
-  <div class="page-head"><div><h2>5 · Recherche</h2><p class="lead">Sucht Patente, Ausschreibungen, Fachartikel und Produkte zur gewählten Idee.</p></div></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 5</span>Recherche</h2><p class="lead">Sucht Patente, Ausschreibungen, Fachartikel und Produkte zur gewählten Idee.</p></div></div>
   <section class="card">
     <header><h3>Start</h3>${p?.confirmed ? badge('ok', `Plan v${p.version}`) : badge('warn', 'Plan nicht bestätigt')}</header>
     ${st?.static ? '<div class="callout info">In dieser Online-Version durchsucht die Recherche vorbereitete, echte Quellen (Kennzeichnung „Vorbereitet“).</div>' : !st?.ok ? `<div class="callout bad">${esc(st?.error || 'Status unbekannt')}</div>` : ''}
@@ -492,7 +507,7 @@ function s6() {
   const cap5 = s.capabilities.find(c => c.id === 'CAP-05');
   const req = store.getSources().seed.synthetic_matching_case;
   return `
-  <div class="page-head"><div><h2>6 · Chancen</h2><p class="lead">Aus Recherche und Fähigkeiten werden Geschäftsideen – mit Gegenargumenten und offenen Fragen. Vorläufig, keine Investitionsentscheidung.</p></div></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 6</span>Chancen</h2><p class="lead">Aus Recherche und Fähigkeiten werden Geschäftsideen – mit Gegenargumenten und offenen Fragen. Vorläufig, keine Investitionsentscheidung.</p></div></div>
   ${s.hypotheses.map(hypCard).join('')}
   <section class="card"><details><summary><b>Eigene Idee ergänzen</b></summary>
     <div class="form-grid"><label class="lbl">Titel<input class="inp" id="nh-title"></label><label class="lbl">Zielkäufer<input class="inp" id="nh-buyer"></label></div>
@@ -540,7 +555,7 @@ export function missingData() {
 function s7() {
   const s = store.getState();
   return `
-  <div class="page-head"><div><h2>7 · Review <span class="pv">Vorschau</span></h2><p class="lead">Zusammenschau zur internen Durchsicht. Keine Scores, keine Freigabe.</p></div></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 7</span>Review <span class="pv">Vorschau</span></h2><p class="lead">Zusammenschau zur internen Durchsicht. Keine Scores, keine Freigabe.</p></div></div>
   <div class="grid2">
     <section class="card"><header><h3>Profil v${s.profile.version}</h3>${prov.syn()}</header>
       <ul class="mini">${s.capabilities.map(c => `<li><code>${esc(c.id)}</code> ${esc(c.title)} – ${esc(R.ORIGIN[c.origin])}, ${esc(R.CONFIRMATION[c.confirmation])}</li>`).join('') || '<li class="muted">leer</li>'}</ul></section>
@@ -558,7 +573,7 @@ function s7() {
 
 function s8() {
   return `
-  <div class="page-head"><div><h2>8 · Übergabe <span class="pv">Vorschau</span></h2><p class="lead">Recherche-Zusammenfassung zum Weitergeben. Es wird nichts versendet.</p></div></div>
+  <div class="page-head"><div><h2><span class="eyebrow">Schritt 8</span>Übergabe <span class="pv">Vorschau</span></h2><p class="lead">Recherche-Zusammenfassung zum Weitergeben. Es wird nichts versendet.</p></div></div>
   <section class="card">
     <div class="banner big">Vorläufige Hypothese – keine Investitionsentscheidung</div>
     <p>Der Bericht enthält Profil- und Laufversionen, Originalquellen mit Links und Abrufmodus (live / vorbereitet / manuell), offene Punkte, zurückgestellte Alternativen und den Hinweis auf synthetische Betriebsdaten.</p>
