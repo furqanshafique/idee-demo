@@ -67,6 +67,9 @@ def provider_status():
 
 class Handler(SimpleHTTPRequestHandler):
     server_version = "IDEE-Demo"
+    # Python 3.9 does not know these; with nosniff they must be typed correctly.
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map,
+                      ".woff2": "font/woff2", ".svg": "image/svg+xml", ".mjs": "text/javascript"}
 
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=str(ROOT), **kw)
@@ -173,10 +176,18 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"status": "failed", "error": providers._http_error_text(e)})
 
 
+class Server(ThreadingHTTPServer):
+    # The default listen backlog (5) is smaller than the 6 parallel connections a
+    # browser opens for the JS modules; on macOS the overflow is reset and the app
+    # intermittently never boots.
+    request_queue_size = 64
+    daemon_threads = True
+
+
 def main():
     load_env()
     port = int(os.environ.get("IDEE_PORT") or os.environ.get("PORT") or "8770")
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    httpd = Server(("127.0.0.1", port), Handler)
     st = provider_status()
     print(f"IDEE demo: http://127.0.0.1:{port}/app/")
     print("Provider: " + ", ".join(f"{k}={v['status']}" for k, v in st.items()))
