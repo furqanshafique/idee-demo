@@ -1,10 +1,13 @@
 // Research summary export (HTML + JSON). Built from state only.
 import * as store from './store.js';
 import * as R from './rules.js';
-import { esc, missingData } from './views.js';
+import { esc, missingData, PROV_NAME, runMode, runModeLabel } from './views.js';
 
-const DISCLAIMER = 'Vorläufige Hypothese – keine Investitionsentscheidung. Betriebsdaten sind synthetisch (Demo); Bestätigungen gelten nur für das Demo-Profil, nicht für Ergo-Tec.';
-const MODE = { live: 'LIVE-API', curated: 'Vorbereiteter Referenztreffer (kuratiert, nicht abgerufen)', manual: 'Manuell erfasst' };
+const DISCLAIMER = 'Vorläufige Hypothese – keine Investitionsentscheidung. Betriebsdaten sind fiktiv (Demo); Bestätigungen gelten nur für das Demo-Profil, nicht für Ergo-Tec.';
+// Same five provenance words as the app: Fiktiv, Vorbereitet, Live, Manuell, Kundenaussage.
+const MODE = { live: 'Live', curated: 'Vorbereitet', manual: 'Manuell' };
+const MODE_NOTE = { live: 'echte API-Antwort dieses Laufs', curated: 'vorab geprüfte öffentliche Quelle, nicht live abgerufen', manual: 'von Hand eingetragen, nicht abgerufen' };
+const pname = p => PROV_NAME[p] || p;
 
 export function buildJson() {
   const s = store.getState();
@@ -14,7 +17,7 @@ export function buildJson() {
     documents: s.documents.map(({ pageTexts, ...d }) => d),
     capabilities: s.capabilities, review_queue: s.reviewQueue, answers: s.answers,
     selected_fields: s.selectedFieldIds, plan: s.plan,
-    runs: s.runs.map(r => ({ ...r, results: r.results.map(x => ({ ...x, retrieval_mode: MODE[x.mode] })) })),
+    runs: s.runs.map(r => ({ ...r, mode_label: runModeLabel(r), results: r.results.map(x => ({ ...x, retrieval_mode: MODE[x.mode] })) })),
     manual_sources: s.manualSources,
     hypotheses: s.hypotheses.map(h => ({ ...h, assessment: store.assess(h) })),
     missing_data: missingData(),
@@ -40,22 +43,22 @@ table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0}
 th{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#667085;background:#f9fafb;border-bottom:1px solid #e4e7ec;padding:8px 10px;text-align:left}
 td{border-bottom:1px solid #eef0f3;padding:8px 10px;text-align:left;vertical-align:top}
 ul{padding-left:20px;color:#344054}li+li{margin-top:4px}
-.live{color:#1a7f45;font-weight:600}.cur{color:#946016;font-weight:600}
+.live{color:#1a7f45;font-weight:600}.cur,.mix{color:#946016;font-weight:600}small{color:#667085}
 @media print{body{margin:0;max-width:none}.disc{border:1px solid #ecd9a8}a{color:inherit}}
 </style></head><body>
 <div class="disc">${esc(DISCLAIMER)}</div>
 <h1>Devoreo IDEE – Recherche-Zusammenfassung</h1>
 <p class="meta">Projekt <b>${esc(s.project.id)}</b> · ${esc(s.project.case)} · Profilversion <b>v${s.profile.version}</b> · Plan ${s.plan ? 'v' + s.plan.version : '–'} · exportiert ${new Date().toLocaleString('de-DE')}</p>
 <h2>Auftrag</h2><p>${esc(s.project.goal)} · Region: ${esc(s.project.region)} · Budget: ${s.project.pilot_budget_eur ?? 'unbekannt'}</p>
-<h2>Fähigkeiten (Demo-Profil, synthetisch)</h2><table><tr><th>ID</th><th>Titel</th><th>Herkunft</th><th>Status</th><th>Beleg</th></tr>
+<h2>Fähigkeiten (Demo-Profil, fiktiv)</h2><table><tr><th>ID</th><th>Titel</th><th>Herkunft</th><th>Status</th><th>Beleg</th></tr>
 ${s.capabilities.map(c => `<tr><td>${esc(c.id)}</td><td>${esc(c.title)}</td><td>${esc(R.ORIGIN[c.origin])}</td><td>${esc(R.CONFIRMATION[c.confirmation])}</td><td>${c.source?.quote ? `${esc(c.source.document_id)} S.${c.source.page}: „${esc(c.source.quote)}“ (${c.verified ? 'verifiziert' : 'nicht verifiziert'}; ${esc(c.method)})` : 'Interview, Nachweis ausstehend'}</td></tr>`).join('')}</table>
-<h2>Recherchelauf-Versionen</h2><table><tr><th>Lauf</th><th>Modus</th><th>Profil/Plan</th><th>Abfragen</th></tr>
-${s.runs.map(r => `<tr><td>${esc(r.id)}${r.separate ? ' (separater Test)' : ''}</td><td>${r.mode === 'live' ? '<span class="live">LIVE</span>' : '<span class="cur">vorbereitet/offline</span>'}</td><td>v${r.profileVersion} / ${r.planVersion ? 'v' + r.planVersion : '–'}</td><td>${r.queries.map(q => `${esc(q.provider)} „${esc(q.query)}“: ${esc(q.status)} (${q.count}/${q.total ?? '?'})${q.error ? ' – ' + esc(q.error) : ''}`).join('<br>')}</td></tr>`).join('')}</table>
-<h2>Originalquellen</h2><table><tr><th>ID</th><th>Titel</th><th>Abrufmodus</th><th>Datum</th><th>Link</th></tr>
-${s.runs.flatMap(r => r.results.map(x => [r, x])).map(([r, x]) => `<tr><td>${esc(x.identifier)}</td><td>${esc(x.title)}</td><td>${esc(MODE[x.mode])}${x.mode === 'live' ? ' · ' + esc(x.provider) + ' · ' + esc(x.retrieved_at) : ''} (${esc(r.id)})</td><td>${esc(x.date || '–')}</td><td>${link(x.url)}</td></tr>`).join('')}
-${s.manualSources.map(m => `<tr><td>${esc(m.id)}</td><td>${esc(m.title)}</td><td>Manuell</td><td>–</td><td>${link(m.url)}</td></tr>`).join('')}</table>
+<h2>Recherchelauf-Versionen</h2><table><tr><th>Lauf</th><th>Herkunft</th><th>Profil/Plan</th><th>Abfragen</th></tr>
+${s.runs.map(r => `<tr><td>${esc(r.id)}${r.separate ? ' (separater Test)' : ''}</td><td><span class="${({ live: 'live', mixed: 'mix', prepared: 'cur' })[runMode(r)]}">${esc(runModeLabel(r))}</span></td><td>v${r.profileVersion} / ${r.planVersion ? 'v' + r.planVersion : '–'}</td><td>${r.queries.map(q => `${esc(pname(q.provider))} „${esc(q.query)}“: ${esc(q.status)} (${q.count}/${q.total ?? '?'})${q.error ? ' – ' + esc(q.error) : ''}`).join('<br>')}</td></tr>`).join('')}</table>
+<h2>Originalquellen</h2><table><tr><th>ID</th><th>Titel</th><th>Herkunft</th><th>Datum</th><th>Link</th></tr>
+${s.runs.flatMap(r => r.results.map(x => [r, x])).map(([r, x]) => `<tr><td>${esc(x.identifier)}</td><td>${esc(x.title)}</td><td><b class="${x.mode === 'live' ? 'live' : 'cur'}">${esc(MODE[x.mode])}</b>${x.mode === 'live' ? ' · ' + esc(pname(x.provider)) + ' · ' + esc(new Date(x.retrieved_at).toLocaleString('de-DE')) : ''}<br><small>${esc(MODE_NOTE[x.mode] || '')} (${esc(r.id)})</small></td><td>${esc(x.date || '–')}</td><td>${link(x.url)}</td></tr>`).join('')}
+${s.manualSources.map(m => `<tr><td>${esc(m.id)}</td><td>${esc(m.title)}</td><td><b>Manuell</b><br><small>${esc(MODE_NOTE.manual)}</small></td><td>–</td><td>${link(m.url)}</td></tr>`).join('')}</table>
 <h2>Hypothesen</h2>${s.hypotheses.map(h => `<h3>${esc(h.id)} v${h.version}: ${esc(h.title)} – ${esc(R.HYP_STATUS[h.status] || h.status)}</h3>
-<p>${h.reason ? esc(h.reason) : ''}${h.synthetic_basis ? ' (synthetischer Test – keine reale Evidenz)' : ''}</p>
+<p>${h.reason ? esc(h.reason) : ''}${h.synthetic_basis ? ' (fiktiver Test – keine reale Evidenz)' : ''}</p>
 <table>${Object.entries(a(h).dims).map(([k, d]) => `<tr><td>${esc(k)}</td><td>${esc(d.status)}</td><td>${esc(d.note || '')}</td></tr>`).join('')}</table>
 <p>Quellen: ${h.source_ids.map(esc).join(', ') || '–'} · Priorisierung: ${a(h).priorityAllowed ? 'formal zulässig' : 'nicht zulässig (' + esc(a(h).blockers.join('; ')) + ')'}</p>`).join('')}
 <h2>Zurückgestellte / verworfene Alternativen</h2><ul>${deferred.map(h => `<li>${esc(h.id)}: ${esc(h.title)} – ${esc(h.reason || '')}</li>`).join('') || '<li>keine</li>'}</ul>

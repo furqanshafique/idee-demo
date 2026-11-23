@@ -19,6 +19,10 @@ export const FORBIDDEN_TERMS = [
   'ctrl-01', 'frame-01', 'top-01', 'idee-0', 'pb-17', 'pb-18', 'sn-demo', 'r1/a',
   'musterteam', 'musterbetrieb',
 ];
+// The app's own record IDs (CAP-01, CAP-Q01, SF-M01, H-U01, Q-03, RUN-001, PAT-FAM-01,
+// ALT-01, MARKET-01, MAN-02, PUB-ET-MED, UPL-<hash>, LLM-…) are internal too.
+// Word-bounded and digit-anchored so terms like "ISO 10993-1" or "Q-Switch" stay allowed.
+export const APP_ID_RE = /\b(?:(?:cap|sf|h|q|run|pat|alt|market|man)-(?:[a-z]{1,3}-?)?\d{1,3}|pub-et-[a-z]+|upl-[0-9a-f]{8}|llm-[a-z0-9-]+)\b/gi;
 export const MAX_QUERY_LEN = 200;
 
 // ------------------------------------------------------------ text / quotes
@@ -65,7 +69,7 @@ export function checkQuery(q) {
   if (!cleaned) return { ok: false, cleaned, error: 'Suchbegriff fehlt.' };
   if (cleaned.length > MAX_QUERY_LEN) return { ok: false, cleaned, error: `Suchbegriff zu lang (max. ${MAX_QUERY_LEN} Zeichen).` };
   const low = cleaned.toLowerCase();
-  const hits = FORBIDDEN_TERMS.filter(t => low.includes(t));
+  const hits = [...FORBIDDEN_TERMS.filter(t => low.includes(t)), ...(low.match(APP_ID_RE) || [])];
   if (hits.length) return { ok: false, cleaned, error: `Interne Kennungen nicht erlaubt: ${hits.join(', ')}`, hits };
   return { ok: true, cleaned };
 }

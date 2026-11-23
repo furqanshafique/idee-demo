@@ -24,6 +24,12 @@ FORBIDDEN_TERMS = [
     "musterteam", "musterbetrieb",
 ]
 
+# The app's own record IDs are internal too (keep in sync with APP_ID_RE in app/js/rules.js).
+APP_ID_RE = re.compile(
+    r"\b(?:(?:cap|sf|h|q|run|pat|alt|market|man)-(?:[a-z]{1,3}-?)?\d{1,3}|pub-et-[a-z]+|upl-[0-9a-f]{8}|llm-[a-z0-9-]+)\b",
+    re.IGNORECASE,
+)
+
 TAG_RE = re.compile(r"<[^>]+>")
 CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
@@ -53,7 +59,7 @@ def check_query(query):
     if len(q) > MAX_QUERY_LEN:
         return None, f"Suchbegriff zu lang (max. {MAX_QUERY_LEN} Zeichen)."
     low = q.lower()
-    hits = [t for t in FORBIDDEN_TERMS if t in low]
+    hits = [t for t in FORBIDDEN_TERMS if t in low] + APP_ID_RE.findall(low)
     if hits:
         return None, "Interne Kennungen dürfen nicht an externe Dienste gehen: " + ", ".join(hits)
     return q, None

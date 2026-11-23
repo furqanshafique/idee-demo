@@ -1,5 +1,7 @@
 // Research runs. Live mode calls the local server proxy (/api/search) only;
-// offline mode matches curated public references. Never mixes the two.
+// offline mode matches curated public references. A live run without EPO keys
+// takes its patents from the prepared set; those results stay "curated" and the
+// run is shown as "Live + Vorbereitet" (see runMode in views.js).
 import * as store from './store.js';
 import { matchCurated, checkQuery } from './rules.js';
 

@@ -34,6 +34,17 @@ t('checkQuery blocks internal identifiers', () => {
   eq(R.checkQuery('modular test fixture changeover').ok, true);
 });
 t('checkQuery bounds length', () => { eq(R.checkQuery('x'.repeat(201)).ok, false); });
+t('checkQuery blocks the app\'s own record IDs', () => {
+  for (const q of ['test fixture CAP-01', 'SF-01 fixture', 'H-02', 'CAP-Q01', 'CAP-M01', 'SF-M01', 'H-U01', 'Q-03',
+    'RUN-001', 'PAT-01', 'PAT-FAM-01', 'ALT-01', 'MARKET-01', 'MAN-02', 'PUB-ET-MED', 'UPL-1a2b3c4d', 'LLM-IDEE-01-1']) {
+    eq(R.checkQuery(q).ok, false, q);
+  }
+});
+t('checkQuery keeps ordinary technical terms', () => {
+  for (const q of ['ISO 10993-1 test fixture', 'H-Profil Aufnahme', 'Q-Switch laser', 'run-in test bench', 'Prüfaufnahme, quick-change']) {
+    eq(R.checkQuery(q).ok, true, q);
+  }
+});
 
 const cap = (id, extra = {}) => ({ id, origin: 'documented', confirmation: 'confirmed', verified: true, ...extra });
 const SF01 = { id: 'SF-01', capability_ids: ['CAP-01', 'CAP-02', 'CAP-03', 'CAP-04'] };

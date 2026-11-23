@@ -26,6 +26,15 @@ class QueryGuard(unittest.TestCase):
         for q in ["UL-01 fixture", "BeispielMed", "Hubantrieb MH-A", "ergo-tec test", "PB-17"]:
             self.assertIsNotNone(providers.check_query(q)[1], q)
 
+    def test_blocks_app_record_ids(self):
+        for q in ["test fixture CAP-01", "SF-01 fixture", "H-02", "CAP-Q01", "SF-M01", "H-U01", "Q-03",
+                  "RUN-001", "PAT-FAM-01", "ALT-01", "MARKET-01", "MAN-02", "PUB-ET-MED", "UPL-1a2b3c4d", "LLM-IDEE-01-1"]:
+            self.assertIsNotNone(providers.check_query(q)[1], q)
+
+    def test_keeps_ordinary_terms(self):
+        for q in ["ISO 10993-1 test fixture", "H-Profil Aufnahme", "Q-Switch laser", "run-in test bench", "quick-change"]:
+            self.assertIsNone(providers.check_query(q)[1], q)
+
     def test_accepts_generic(self):
         self.assertEqual(providers.check_query("  modular   test fixture ")[0], "modular test fixture")
 

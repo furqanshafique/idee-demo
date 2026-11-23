@@ -11,7 +11,29 @@ const ext = (u, label) => (safeUrl(u) ? `<a href="${esc(u)}" target="_blank" rel
 const badge = (tone, t) => `<span class="badge ${tone}">${esc(t)}</span>`;
 const fmtTime = iso => (iso ? new Date(iso).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : '–');
 const fmtDate = iso => (iso ? new Date(iso).toLocaleDateString('de-DE') : 'unbekannt');
-const PROV_NAME = { epo: 'EPO OPS', 'epo-demo': 'Patente (Demo-Bestand)', ted: 'TED', crossref: 'Crossref', curated: 'Kuratiert' };
+export const PROV_NAME = { epo: 'EPO OPS', 'epo-demo': 'Patente (vorbereitet)', ted: 'TED', crossref: 'Crossref', curated: 'Vorbereitet' };
+
+// Honest mode of a whole run. A run started as "live" whose patent query used
+// the prepared set (no EPO keys) is mixed and must never be shown as plain live.
+export function runMode(r) {
+  if (r.mode !== 'live') return 'prepared';
+  const prepared = r.queries.some(q => q.provider === 'epo-demo') || r.results.some(x => x.mode !== 'live');
+  return prepared ? 'mixed' : 'live';
+}
+export function runModeLabel(r) {
+  const m = runMode(r);
+  if (m === 'live') return 'Live';
+  if (m === 'prepared') return 'Vorbereitet';
+  return r.queries.some(q => q.provider === 'epo-demo') ? 'Live + Vorbereitet (Patente)' : 'Live + Vorbereitet';
+}
+function runModeBadge(r) {
+  const m = runMode(r);
+  const live = '<span class="prov live" title="Echte API-Antworten dieses Laufs">Live</span>';
+  if (m === 'live') return live;
+  if (m === 'prepared') return prov.cur();
+  const what = r.queries.some(q => q.provider === 'epo-demo') ? ' · Patente' : '';
+  return `${live} <span class="prov cur" title="Teil dieses Laufs kam aus vorbereiteten Quellen, nicht live">Vorbereitet${what}</span>`;
+}
 
 export const prov = {
   syn: () => '<span class="prov syn" title="Erfundene Beispieldaten – keine Aussage über Ergo-Tec">Fiktiv</span>',
@@ -194,7 +216,7 @@ function s2() {
         return `<div class="docopt ${done ? 'done' : ''}"><div><code>${id}</code> ${esc(label)}</div>
           <button class="btn sm ${done ? 'ghost' : 'secondary'}" data-act="import-sample" data-id="${id}">${done ? 'Erneut importieren' : 'Musterdokument übernehmen'}</button></div>`;
       }).join('')}
-      <div class="docopt upload"><div><b>Eigene PDF hochladen</b><br><span class="small muted">Nur synthetische/Demo-Unterlagen. Verarbeitung lokal im Browser.</span></div>
+      <div class="docopt upload"><div><b>Eigene PDF hochladen</b><br><span class="small muted">Nur fiktive/Demo-Unterlagen. Verarbeitung lokal im Browser.</span></div>
         <label class="btn sm secondary filebtn">Datei wählen<input type="file" accept="application/pdf,.pdf" data-act="upload" hidden></label></div>
     </div>
     ${runtime.busy ? `<p class="callout info">${esc(runtime.busy)}</p>` : ''}
@@ -241,7 +263,7 @@ function s2() {
       <button class="btn sm secondary" data-act="manual-cap">Anlegen</button>` : '<p class="empty">Zuerst ein Dokument importieren.</p>'}
       ${unknown.map(d => `<details class="txt"><summary>Extrahierter Text ${esc(d.name)} (${d.textChars} Zeichen)</summary>${d.pageTexts.map((t, i) => `<h4>Seite ${i + 1}</h4><pre>${esc(t.slice(0, 2500)) || '<i>kein Text</i>'}</pre>`).join('')}</details>`).join('')}
       ${anth === 'ready' ? `<hr><h4>Optionale KI-Extraktion</h4>
-        <label class="switch"><input type="checkbox" id="llm-ok"> Ich gebe frei, dass der <b>Text eines synthetischen Musterdokuments</b> an die Claude API gesendet wird.</label>
+        <label class="switch"><input type="checkbox" id="llm-ok"> Ich gebe frei, dass der <b>Text eines fiktiven Musterdokuments</b> an die Claude API gesendet wird.</label>
         <div class="row">${s.documents.filter(d => d.known).map(d => `<button class="btn sm ghost" data-act="llm-extract" data-doc="${esc(d.id)}">${esc(d.id)} extrahieren</button>`).join('') || '<span class="small muted">Kein synthetisches Dokument importiert.</span>'}</div>
         <p class="small muted">Antwort wird gegen ein Schema geprüft, jedes Zitat gegen den Seitentext verifiziert. Ergebnisse landen immer in der Prüfliste.</p>`
         : ''}
@@ -413,8 +435,9 @@ function s5() {
   </section>
   ${s.runs.length ? `
   <section class="card">
-    <header><h3>Suchläufe</h3><select class="inp narrow" data-act="run-select">${s.runs.map(r => `<option value="${esc(r.id)}" ${run?.id === r.id ? 'selected' : ''}>${esc(r.id)} · ${esc(r.label)} · ${fmtTime(r.startedAt)}</option>`).join('')}</select></header>
-    <details><summary class="small">Details zu diesem Suchlauf (${run.mode === 'live' ? 'live' : 'vorbereitete Quellen'})</summary>
+    <header><h3>Suchläufe</h3><select class="inp narrow" data-act="run-select">${s.runs.map(r => `<option value="${esc(r.id)}" ${run?.id === r.id ? 'selected' : ''}>${esc(r.id)} · ${esc(r.label)} · ${runModeLabel(r)} · ${fmtTime(r.startedAt)}</option>`).join('')}</select></header>
+    <div class="row runmode">Dieser Lauf: ${runModeBadge(run)}</div>
+    <details><summary class="small">Details zu diesem Suchlauf (${runModeLabel(run)})</summary>
     <table class="tbl"><thead><tr><th>Quelle</th><th>Suchbegriffe</th><th>Status</th><th>Treffer</th><th>Zeit</th><th>Dauer</th></tr></thead><tbody>
       ${run.queries.map(q => `<tr><td>${esc(PROV_NAME[q.provider] || q.provider)}</td><td><code>${esc(q.query)}</code></td><td>${stBadge(q.status)}${q.error ? `<div class="small bad">${esc(q.error)}</div>` : ''}${q.note ? `<div class="small muted">${esc(q.note)}</div>` : ''}</td>
         <td>${q.status === 'running' ? '…' : `${q.count} / ${q.total ?? '?'}`}</td><td class="small">${fmtTime(q.fetchedAt)}</td><td class="small">${q.durationMs != null ? `${q.durationMs} ms` : '–'}</td></tr>`).join('')}
@@ -563,7 +586,7 @@ function s7() {
   </div>
   <section class="card"><header><h3>Recherchelauf-Übersicht</h3></header>
     <table class="tbl"><thead><tr><th>Lauf</th><th>Modus</th><th>Profil/Plan</th><th>Anbieter-Status</th><th>Treffer</th></tr></thead><tbody>
-    ${s.runs.map(r => `<tr><td>${esc(r.id)}${r.separate ? ' (separat)' : ''}</td><td>${r.mode === 'live' ? 'LIVE' : 'vorbereitet/offline'}</td><td>v${r.profileVersion} / ${r.planVersion ? 'v' + r.planVersion : '–'}</td><td>${r.queries.map(q => `${esc(PROV_NAME[q.provider])}: ${stBadge(q.status)}`).join(' ')}</td><td>${r.results.length}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">keine</td></tr>'}
+    ${s.runs.map(r => `<tr><td>${esc(r.id)}${r.separate ? ' (separat)' : ''}</td><td>${runModeBadge(r)}</td><td>v${r.profileVersion} / ${r.planVersion ? 'v' + r.planVersion : '–'}</td><td>${r.queries.map(q => `${esc(PROV_NAME[q.provider])}: ${stBadge(q.status)}`).join(' ')}</td><td>${r.results.length}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">keine</td></tr>'}
     </tbody></table></section>
   <section class="card"><header><h3>Hypothesen</h3></header>
     <ul class="mini">${s.hypotheses.map(h => `<li><code>${esc(h.id)}</code> v${h.version} ${esc(h.title)} – <b>${esc(R.HYP_STATUS[h.status] || h.status)}</b>${h.reason ? `: ${esc(h.reason)}` : ''}</li>`).join('')}</ul>
@@ -576,7 +599,7 @@ function s8() {
   <div class="page-head"><div><h2><span class="eyebrow">Schritt 8</span>Übergabe <span class="pv">Vorschau</span></h2><p class="lead">Recherche-Zusammenfassung zum Weitergeben. Es wird nichts versendet.</p></div></div>
   <section class="card">
     <div class="banner big">Vorläufige Hypothese – keine Investitionsentscheidung</div>
-    <p>Der Bericht enthält Profil- und Laufversionen, Originalquellen mit Links und Abrufmodus (live / vorbereitet / manuell), offene Punkte, zurückgestellte Alternativen und den Hinweis auf synthetische Betriebsdaten.</p>
+    <p>Der Bericht enthält Profil- und Laufversionen, Originalquellen mit Links und Herkunft (Live / Vorbereitet / Manuell), offene Punkte, zurückgestellte Alternativen und den Hinweis auf fiktive Betriebsdaten.</p>
     <div class="row"><button class="btn primary" data-act="export-view">${store.getUi().showReport ? 'Bericht ausblenden' : 'Bericht anzeigen'}</button>
       ${runtime.status?.static ? '' : '<button class="btn secondary" data-act="export-html">HTML-Bericht herunterladen</button><button class="btn ghost" data-act="export-json">JSON exportieren</button>'}</div>
     ${runtime.status?.static ? '<p class="small muted">Downloads (HTML/JSON) sind in der lokalen Installation verfügbar.</p>' : ''}

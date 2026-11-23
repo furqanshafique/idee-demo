@@ -53,7 +53,7 @@ async function renderViewer() {
   const info = docInfo(v.docId);
   const quotes = store.getState().capabilities.filter(c => c.source?.document_id === v.docId && c.source.page === v.page);
   box.innerHTML = `
-    <header><div><small>Originaldokument ${info?.doc?.synthetic !== false ? '· synthetisch' : ''}</small><strong>${esc(info?.title || v.docId)}</strong></div>
+    <header><div><small>Originaldokument ${info?.doc?.synthetic !== false ? '· fiktiv' : ''}</small><strong>${esc(info?.title || v.docId)}</strong></div>
       <button class="btn ghost sm" data-act="close-viewer" aria-label="Schließen">×</button></header>
     <div class="viewer-nav">
       <button class="btn ghost sm" data-act="viewer-page" data-d="-1">‹</button><span id="vp">Seite ${v.page}</span>
@@ -182,7 +182,13 @@ document.addEventListener('click', async e => {
     case 'h01-review': return actions.reviewH01();
     case 'hyp-save': {
       const id = el.dataset.id;
-      return actions.updateHyp(id, { buyer: val(`h-buyer-${id}`), deliverable: val(`h-deliv-${id}`), alternative: val(`h-alt-${id}`), questions: val(`h-q-${id}`).split('\n').map(x => x.trim()).filter(Boolean) }, 'Felder bearbeitet');
+      const patch = { buyer: val(`h-buyer-${id}`), deliverable: val(`h-deliv-${id}`), alternative: val(`h-alt-${id}`), questions: val(`h-q-${id}`).split('\n').map(x => x.trim()).filter(Boolean) };
+      // Only a real change creates a new version; otherwise the history fills with empty entries.
+      const h = s.hypotheses.find(x => x.id === id);
+      if (h && Object.entries(patch).every(([k, v]) => JSON.stringify(h[k] ?? (Array.isArray(v) ? [] : '')) === JSON.stringify(v))) {
+        return store.flashMsg('info', `${id}: keine Änderung – keine neue Version angelegt.`);
+      }
+      return actions.updateHyp(id, patch, 'Felder bearbeitet');
     }
     case 'hyp-add': return actions.addHyp({ title: val('nh-title'), buyer: val('nh-buyer'), deliverable: val('nh-deliv'), alternative: val('nh-alt'), capability_ids: [...document.querySelectorAll('.nh-cap:checked')].map(x => x.value) });
     case 'matching-load': {

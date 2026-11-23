@@ -656,3 +656,6 @@ button.chip:hover { border-color: var(--dv-brand-line); color: var(--dv-brand-da
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
+
+/* Run provenance line under the run selector */
+.runmode { margin: 0 0 var(--s3); gap: 6px; font-size: 13px; color: var(--text-2); }
