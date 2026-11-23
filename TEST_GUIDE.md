@@ -6,7 +6,8 @@ Click-by-click. Button names are written exactly as they appear on screen. Each 
 (Or locally: `python3 server/server.py`, then `http://127.0.0.1:8770/app/`.)
 **Before each test:** top right **„Demo zurücksetzen“** → **„Ja, zurücksetzen“**. Your clicks are saved only in your own browser.
 
-The left menu has 8 steps. The dot next to each step turns green when it is done.
+The left menu has 8 steps. A finished step shows a ✓ instead of its number, and the bar „Fortschritt“ above the steps fills up.
+Top right, the header shows which sources search live: **Patente · Ausschreibungen · Fachartikel**, each marked **live** or **vorbereitet**.
 
 ---
 
@@ -18,11 +19,11 @@ This is the walkthrough for the client call.
 |---|---|---|---|
 | 1 | 1 · Auftrag | **„Umfang bestätigen und Projekt anlegen“** | Green note, button „Weiter: Unternehmensprofil →“ |
 | 2 | 2 · Unternehmensprofil | **„Musterdokument übernehmen“** next to IDEE-01 | The PDF opens on the right. 4 cards appear: CAP-01 to CAP-04, each with a quote and „Textstelle geprüft“ |
-| 3 | same | On each of the 4 cards: **„Bestätigen“** | Card border turns green, status „bestätigt“ |
+| 3 | same | On each of the 4 cards: **„Bestätigen“** | Left edge of the card turns green, status „bestätigt“ |
 | 4 | 3 · Anwendungsfelder | Next to SF-01 „Variantenwechsel bei mechanischen Prüfaufnahmen“: **„Auswählen“** | Button changes to „✓ Ausgewählt“ |
 | 5 | 4 · Rechercheplan | **„SF-01 …“** (top), then **„Plan bestätigen“** | Search terms table, then „Plan bestätigt“ |
-| 6 | 5 · Recherche | **„Recherche starten“** | Tabs fill: Patente, Ausschreibungen, Produkte am Markt (locally also Fachartikel) |
-| 7 | same, tab **Patente** | read the grey box under WO2021055483A1 | „Welches Problem beschreibt das Patent?“ – problem, solution, link „Patent öffnen“ |
+| 6 | 5 · Recherche | **„Recherche starten“** | Tabs fill: Patente, Ausschreibungen, Produkte am Markt (locally also Fachartikel). Under „Suchläufe“, „Dieser Lauf“ shows **Live** and, without EPO access, also **Vorbereitet · Patente** |
+| 7 | same, tab **Patente** | read the grey box under WO2021055483A1 | „Welches Problem beschreibt das Patent?“ – problem, solution, link „Patent öffnen“ (opens Espacenet; it may show a short security check first) |
 | 8 | 6 · Chancen, card H-01 | **„Gegen Patente und Produkte prüfen“** | H-01 turns „zurückgestellt – gibt es schon“, with the reason |
 | 9 | same, card H-02 | read „Stand der Prüfung“ | 5 questions with status; „Noch nicht priorisierbar: …“ |
 | 10 | 8 · Übergabe | **„Bericht anzeigen“** | Summary report appears on the page |
@@ -64,6 +65,7 @@ This is the walkthrough for the client call.
 2. **See:** red badge „Interne Kennungen nicht erlaubt: ul-01“.
 3. **„Plan bestätigen“** → red message, plan is not confirmed.
 4. Remove `, UL-01` again and confirm.
+5. Optional: try `CAP-01` or `SF-01` the same way. **See:** also blocked – the app's own record IDs never go outside either.
 
 ## Test 7 – Example: Is „Kaltplasma zur Bodenreinigung“ new?
 
@@ -86,6 +88,7 @@ This is the walkthrough for the client call.
 
 1. Step 6, H-02: change „Wer würde kaufen?“ → **„Speichern“**.
 2. **See:** „Verlauf“ count goes up by one.
+3. Click **„Speichern“** again without changing anything. **See:** „keine Änderung – keine neue Version angelegt“, the count stays the same.
 
 ## Test 10 – Data stays, no duplicates
 
@@ -107,7 +110,7 @@ This is the walkthrough for the client call.
 | | Online (ksteri.github.io/idee-demo) | Local (`python3 server/server.py`) |
 |---|---|---|
 | Ausschreibungen (TED), Fachartikel (Crossref) | prepared sources | searched live |
-| Patente | prepared sources | prepared sources (live only with EPO access) |
+| Patente | prepared sources | live with EPO access (`.env`), otherwise prepared sources – the run then shows „Live + Vorbereitet (Patente)“ |
 | Report | „Bericht anzeigen“ | also download as HTML / JSON |
 
 Results from prepared sources are marked **„Vorbereitet“**, live results **„Live“**, invented company data **„Fiktiv“**.

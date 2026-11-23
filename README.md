@@ -1,7 +1,7 @@
 # DEVOREO / IDEE – Innovation Discovery Engine (functional prototype)
 
 
-> **Testanleitung:** [TEST_GUIDE.md](TEST_GUIDE.md)
+> **Testanleitung:** [TEST_GUIDE.md](TEST_GUIDE.md) · **Bug log and fixes:** [BUGS.md](BUGS.md)
 
 German-language interactive prototype for the Ergo-Tec client demo (27 Nov 2026). Internal prototype; all company data is **synthetic**. The original kit notes are in `KIT_NOTES.md`; the build brief is `CLAUDE_BUILD_PROMPT.md`.
 
@@ -19,7 +19,7 @@ Open http://127.0.0.1:8770/app/ (`IDEE_PORT=9000 python3 server/server.py` for a
 
 Click-through link (claude.ai artifact, owner must share it): https://claude.ai/artifact/9HNXQMZyyqLtQXvS1yCYyB
 
-`tools/build_hosted.sh <output-dir>` builds a flat copy (page, `js/`, `vendor/`, `data/`, `documents/`) that sets `<meta name="devoreo-base" content=".">`. Without the server, the app switches to hosted mode: „Recherche starten (Demo-Bestand)“ searches only the prepared sources in `public_sources.json` (labelled „Vorbereiteter Referenztreffer“), the report is shown in the page instead of downloaded, and AI extraction is unavailable. Everything else (PDF import and viewer, quote verification, profile, fields, plan, hypotheses, matching case) works the same. The hosted copy is a snapshot: rebuild and republish after code changes. The artifact sandbox blocks external API calls and downloads, which is why live search only runs in the local installation.
+`tools/build_hosted.sh <output-dir>` builds a flat copy (page, `theme.css`, `fonts/`, `js/`, `vendor/`, `data/`, `documents/`) that sets `<meta name="devoreo-base" content=".">`. Without the server, the app switches to hosted mode: „Recherche starten“ searches only the prepared sources in `public_sources.json` (labelled „Vorbereitet“; the header shows every source as „vorbereitet“), the report is shown in the page instead of downloaded, and AI extraction is unavailable. Everything else (PDF import and viewer, quote verification, profile, fields, plan, hypotheses, matching case) works the same. The hosted copy is a snapshot: rebuild and republish after code changes. The artifact sandbox blocks external API calls and downloads, which is why live search only runs in the local installation.
 
 ### Environment (optional, server-side only)
 
@@ -29,7 +29,7 @@ cp .env.example .env    # then fill in values; .env is git-ignored and never sen
 
 | Variable | Effect |
 |---|---|
-| `EPO_CONSUMER_KEY`, `EPO_CONSUMER_SECRET` | Enables live patent search (EPO OPS 3.2, OAuth client credentials). Without them, the patent query of every run searches the prepared patent set (`public_sources.json`, kind `patent`) instead: shown as provider „Patente (Demo-Bestand)“, results labelled „Vorbereiteter Referenztreffer“, never „LIVE“. TED and Crossref stay live. |
+| `EPO_CONSUMER_KEY`, `EPO_CONSUMER_SECRET` | Enables live patent search (EPO OPS 3.2, OAuth client credentials). Without them, the patent query of every run searches the prepared patent set (`public_sources.json`, kind `patent`) instead: shown as provider „Patente (vorbereitet)“, results labelled „Vorbereitet“, never „Live“. TED and Crossref stay live; the run is labelled „Live + Vorbereitet (Patente)“ everywhere (step 5, step 7, report). |
 | `RESEARCH_CONTACT_EMAIL` | Sent as `mailto` to Crossref (polite pool). |
 | `ANTHROPIC_API_KEY` | Enables the optional AI extraction button (synthetic documents only, explicit opt-in). A Claude Code subscription is not a runtime API key. |
 
@@ -38,7 +38,7 @@ Restart the server after editing `.env`.
 ## Tests
 
 ```bash
-./tests/run_tests.sh        # 23 rule unit tests (JavaScriptCore) + 12 server tests (offline)
+./tests/run_tests.sh        # 25 rule unit tests (JavaScriptCore) + 14 server tests (offline)
 python3 tests/live_smoke.py # real calls to TED, Crossref, EPO (network; EPO = BLOCKED without keys)
 ```
 
@@ -52,14 +52,15 @@ The rule tests also run in the browser: http://127.0.0.1:8770/app/tests.html (ta
 | `server/providers.py` | Allowlisted providers: Crossref, TED v3, EPO OPS 3.2, Anthropic (optional). Query guard (≤200 chars, blocks internal identifiers such as UL-01, BeispielMed, MH-A, PB-17 …), text sanitizing, normalized results. |
 | `app/js/rules.js` | Pure business rules: quote verification, field eligibility, Q-01 handling, curated matching, demand-signal and hypothesis assessment, matching case. |
 | `app/js/store.js` | State, versioning (profile, plan, runs, hypotheses), actions; `localStorage` key `devoreo.idee.demo.v1`. |
-| `app/js/research.js` | Live runs via the proxy; offline runs over `data/public_sources.json`. Never mixed, no fallback. |
+| `app/js/research.js` | Live runs via the proxy; offline runs over `data/public_sources.json`. No silent fallback: without EPO keys the patent part of a live run uses the prepared set, and the run is shown as „Live + Vorbereitet (Patente)“ (`runMode()` in `views.js`). |
 | `app/js/pdftext.js` | pdf.js text extraction per page + SHA-256. |
-| `app/js/views.js`, `main.js`, `export.js`, `viewer.js` | Screens, events, HTML/JSON report, PDF side panel. `viewer.js` and the base styles are reused from the Zulassungsakte prototype. |
+| `app/js/views.js`, `main.js`, `export.js`, `viewer.js` | Screens, events, HTML/JSON report, PDF side panel. `viewer.js` is reused from the Zulassungsakte prototype. |
+| `app/theme.css`, `app/fonts/` | Complete design system (brand values in the first block) and self-hosted Inter 4.1 (SIL OFL). `app/styles.css` is the old look, kept for rollback. |
 | `app/vendor/` | pdf.js 3.11.174 (vendored, no CDN). |
 
 `window.__idee` exposes store/actions for debugging.
 
-**Data provenance badges.** Every record carries one: *Synthetisch* (fictional company data), *Vorbereiteter Referenztreffer* / *Öffentliche Quelle (kuratiert)* (from `public_sources.json`, verified for the kit, not fetched by the app), *LIVE · provider · time* (a real API response in this run), *Manuell* (analyst-entered URL, not fetched), *Kundenaussage* (interview answer, evidence pending).
+**Data provenance badges.** Every record carries one, with the same words in the app and in the report: *Fiktiv* (invented company data), *Vorbereitet* (real public source from `public_sources.json`, checked for the kit, not fetched by the app), *Live · provider* (a real API response in this run), *Manuell* (analyst-entered URL, not fetched), *Kundenaussage* (interview answer, evidence pending). The step 2 company facts from the Ergo-Tec website carry *Website*. A whole run is *Live*, *Vorbereitet* or *Live + Vorbereitet*.
 
 ## Acceptance tests – results (run 20 Nov 2026 in the browser pane + scripts)
 
