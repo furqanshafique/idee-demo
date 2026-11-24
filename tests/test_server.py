@@ -74,6 +74,10 @@ class Parsers(unittest.TestCase):
         self.assertIn("espacenet", items[0]["url"])
         self.assertIsNone(items[0]["legal_status"])
 
+    def test_epo_number_validates(self):
+        self.assertEqual(providers.search_epo_number("WO 2021; x", "k", "s")["status"], "failed")
+        self.assertEqual(providers.search_epo_number("WO2021055483A1", None, None)["status"], "not_configured")
+
     def test_epo_not_configured(self):
         r = providers.search_epo("test fixture", 10, None, None)
         self.assertEqual(r["status"], "not_configured")

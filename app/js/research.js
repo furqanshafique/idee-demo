@@ -67,7 +67,7 @@ export async function startLive({ specs, limit, timeout, label, separate = false
     }
     const q = { provider: sp.provider, query: sp.query, status: res.status, count: res.count || 0, total: res.total ?? null,
       fetchedAt: res.fetched_at, durationMs: res.duration_ms ?? null, error: res.error || null, request: res.request || null };
-    const results = (res.results || []).map((x, j) => ({ ...x, id: `${run.id}-${sp.provider}-${j + 1}`, runId: run.id, kind: x.kind || PROVIDER_KIND[sp.provider] }));
+    const results = (res.results || []).map((x, j) => withPreparedAnalysis({ ...x, id: `${run.id}-${sp.provider}-${j + 1}`, runId: run.id, kind: x.kind || PROVIDER_KIND[sp.provider] }));
     const cur = store.getState().runs.find(r => r.id === run.id);
     const queries = cur.queries.map((qq, k) => (k === i ? q : qq));
     store.actions.updateRun(run.id, { queries, results: cur.results.concat(results), status: overall(queries) });
@@ -94,6 +94,16 @@ function curatedResult(h, query, verifiedOn) {
     summary: h.summary, evidence: h.evidence, anchor: h.anchor, problem: h.problem, solution: h.solution,
     family: h.origin || h.id, legal_status: null, query, retrieved_at: verifiedOn,
   };
+}
+
+// A live EPO hit from the same patent family as a prepared, checked patent
+// (OPS lists one publication per family, e.g. CA3149717A1 for WO2021055483A1)
+// gets that patent's checked analysis. The hit itself stays mode 'live'.
+function withPreparedAnalysis(x) {
+  const fam = String(x.family || '').replace(/^EPO-FAM:/, '');
+  const h = x.provider === 'epo' && fam && store.getSources().publicSources.sources.find(s => s.kind === 'patent' && s.epo_family === fam);
+  if (!h) return x;
+  return { ...x, curatedId: h.id, prepared_pub: h.publication, prepared_url: h.url, anchor: h.anchor, problem: h.problem, solution: h.solution, evidence: h.evidence };
 }
 
 // Patent search over the prepared (curated, real) publications only.

@@ -293,8 +293,8 @@ def _ops_get_token(key, secret, timeout):
     return _ops_token["value"]
 
 
-def search_epo(query, limit, key, secret, timeout=DEFAULT_TIMEOUT):
-    cql = ops_cql(query)
+def search_epo(query, limit, key, secret, timeout=DEFAULT_TIMEOUT, cql=None):
+    cql = cql or ops_cql(query)
     lim = max(1, min(limit, 25))  # OPS biblio search returns max 25 per range
     res = _result("epo", query, f"GET {OPS_SEARCH}?q={cql}&Range=1-{lim}")
     if not (key and secret):
@@ -318,6 +318,14 @@ def search_epo(query, limit, key, secret, timeout=DEFAULT_TIMEOUT):
     res["duration_ms"] = int((time.time() - t0) * 1000)
     return res
 
+
+def search_epo_number(pub, key, secret, timeout=DEFAULT_TIMEOUT):
+    """Look up one publication by number (e.g. WO2021055483A1) via the same OPS search."""
+    if not re.fullmatch(r"[A-Z]{2}\d{4,12}[A-Z]\d?", pub or ""):
+        res = _result("epo", pub, "invalid publication number")
+        res["error"] = "Ungültige Veröffentlichungsnummer."
+        return res
+    return search_epo(pub, 1, key, secret, timeout, cql=f"pn={pub}")
 
 # ------------------------------------------------------------------ Anthropic (optional extraction)
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"

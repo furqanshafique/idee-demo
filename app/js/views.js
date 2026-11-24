@@ -385,13 +385,13 @@ function patentCard(r) {
     <dl class="kv">
       <dt>Problem</dt><dd>Beim Wechsel zwischen verschiedenen Proben und Prüfarten müssen Prüfaufnahmen umgebaut werden – das kostet Zeit (sinngemäß aus Abschnitt [0003]).</dd>
       <dt>Lösung im Patent</dt><dd>${esc(r.solution)}</dd>
-      <dt>Quelle</dt><dd>${ext(r.url, 'Patent öffnen')}</dd>
+      <dt>Quelle</dt><dd>${ext(r.prepared_url || r.url, 'Patent öffnen')}${r.mode === 'live' && r.prepared_pub && r.prepared_pub !== r.identifier ? ` <span class="small muted">(geprüfte Fassung ${esc(r.prepared_pub)}, gleiche Patentfamilie wie der Live-Treffer ${esc(r.identifier)})</span>` : ''}</dd>
       <dt>Veröffentlicht</dt><dd>${fmtDate(r.date)}</dd>
       <dt>Was das bedeutet</dt><dd>Die Grundidee „modulare Prüfaufnahme“ ist schon bekannt. Ob heute jemand dafür zahlt und ob das Patent noch gilt, ist offen.</dd>
     </dl></div>`;
   if (r.curatedId === 'PAT-02') return `
   <div class="pcard"><h4>Ergebnis: Die Idee ist bereits beschrieben.</h4>
-    <p>Das Patent DE102011010355A1 beschreibt ein Bodenreinigungsgerät mit eingebautem Plasma-Applikator (Ansprüche 1 und 2). ${ext(r.url, 'Patent öffnen')}</p>
+    <p>Das Patent DE102011010355A1 beschreibt ein Bodenreinigungsgerät mit eingebautem Plasma-Applikator (Ansprüche 1 und 2). ${ext(r.prepared_url || r.url, 'Patent öffnen')}</p>
     <table class="tbl dims">
       <tr><td>Idee neu?</td><td>${badge('bad', 'Nein – bereits beschrieben')}</td></tr>
       <tr><td>Gibt es einen Markt?</td><td>${badge('warn', 'offen')}</td></tr>
@@ -456,6 +456,7 @@ function s5() {
           r.notice_type_label && `Typ: ${esc(r.notice_type_label)}${String(r.notice_type || '').startsWith('can') ? ' (bereits vergeben – kein offener Auftrag)' : ''}`,
           r.buyer_country && `Land: ${esc(r.buyer_country)}`, r.doc_type && `Art: ${esc(r.doc_type)}`, r.container && esc(r.container),
           r.applicants?.length && `Anmelder: ${esc(r.applicants.join(', '))}`,
+          String(r.family || '').startsWith('EPO-FAM:') && `Patentfamilie ${esc(r.family.slice(8))} (eine Veröffentlichung je Familie)`,
           r.mode !== 'live' && r.summary && esc(r.summary),
         ].filter(Boolean).join(' · ')}</div>
         ${g.length > 1 ? `<div class="small muted">+${g.length - 1} weitere Meldung(en) zum selben Vorgang (zählt einmal): ${g.slice(1).map(x => esc(x.identifier)).join(', ')}</div>` : ''}

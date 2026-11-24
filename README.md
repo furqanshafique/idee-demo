@@ -38,7 +38,7 @@ Restart the server after editing `.env`.
 ## Tests
 
 ```bash
-./tests/run_tests.sh        # 25 rule unit tests (JavaScriptCore) + 14 server tests (offline)
+./tests/run_tests.sh        # 25 rule unit tests (JavaScriptCore) + 15 server tests (offline)
 python3 tests/live_smoke.py # real calls to TED, Crossref, EPO (network; EPO = BLOCKED without keys)
 ```
 
@@ -68,8 +68,8 @@ The rule tests also run in the browser: http://127.0.0.1:8770/app/tests.html (ta
 |---|---|---|
 | 1 | **Passed** | Fresh project: profile v0, no capabilities. IDEE-01 parsed with pdf.js (3 pages), hash matched, CAP-01…04 quotes verified on the real page text (method „Musterextraktion / regelbasiert“). Page 1/2 links render the actual PDF. No motor-design or capacity claim. Confirm/correct works, survives refresh. Re-import of identical bytes: no duplicates. |
 | 2 | **Passed** | Q-01 = Eigenentwicklung → separate CAP-Q01 „Kundenaussage, Nachweis ausstehend“, cannot be confirmed, not used for fields. Deselecting CAP-03 deactivates SF-01 and SF-02 with reason; reselecting restores them. Q-03 values without evidence are rejected; missing values stay open. |
-| 3 | **Partially passed** | Plan editable and confirmed; internal IDs in terms block confirmation. Live run: **TED** 25/61 notices and **Crossref** 25 results, original links open (TED notice verified in browser). **EPO: BLOCKED – no credentials**; for the introduction demo the patent query searches the prepared patent set instead (labelled, not live). The live patent part of this test is **not passed**. Offline mode is separately labeled and usable. |
-| 4 | **Passed (offline)** | WO2021055483A1 problem card separates problem (paraphrase of Background [0003]), solution, section, date, unknown legal status; no FTO/demand claim. Unrelated query → 0 results. „Kaltplasma, Bodenreinigung“ offline → only PAT-02, novelty claim corrected. Live patent retrieval of WO2021055483A1 is untested (needs EPO keys; `live_smoke.py` checks it). |
+| 3 | **Passed** | Plan editable and confirmed; internal IDs in terms block confirmation. Live run: **TED** 25/61 notices, **Crossref** 25 results and **EPO OPS** live patents (tested with real keys on 24 Nov 2026), original links open. Offline mode is separately labeled and usable. |
+| 4 | **Passed (offline)** | WO2021055483A1 problem card separates problem (paraphrase of Background [0003]), solution, section, date, unknown legal status; no FTO/demand claim. Unrelated query → 0 results. „Kaltplasma, Bodenreinigung“ offline → only PAT-02, novelty claim corrected. Live: OPS returns one publication per family (CA3149717A1 for this topic); it is recognised as the family of WO2021055483A1 and gets the same card. `live_smoke.py` also finds WO2021055483A1 by number. |
 | 5 | **Passed** | H-01 → „Neuheit verworfen / zurückgestellt“ only after PAT-01 and ALT-01 were found in a run. H-02 stays a research hypothesis; priority blocked (no recent authentic demand signal, budget unknown). Matching case: 50 kg / 0,1 mm vs. 25 kg / 0,5 mm + unconfirmed partner → „Transfer offen – Versuch/Nachweis nötig“. Toggle alternative → H-02 v2 deferred, back → v3; history kept. |
 | 6 | **Passed** | HTML/JSON export contains disclaimer, profile/plan/run versions, original links with retrieval mode, missing data, deferred alternatives. Reset (with in-page confirmation) returns to baseline. Unit tests: 23 + 12 green. |
 
@@ -78,7 +78,8 @@ Also checked: unknown PDF upload (text extracted, no seed metadata, manual capab
 ## Implemented / simulated / blocked
 
 - **Implemented:** real PDF parsing and quote verification; capability confirmation with profile versions; Q-01–Q-03; capability-driven field derivation (max. 2 fields); editable research plan with identifier guard; live TED and Crossref search; family grouping (contract + award notice of one procedure count once); research signals by year as sample counts; offline curated mode; manual sources; hypothesis versioning, per-dimension status, counterevidence flow; synthetic matching case; export; reset.
-- **Implemented but untested live:** EPO OPS connector (OAuth, CQL `ta=` search, biblio parsing, Espacenet link) – parser tested only against a hand-written shape sample; optional Claude extraction (`/api/extract`, schema + quote verification client-side).
+- **Tested live (24 Nov 2026):** EPO OPS connector (OAuth, CQL `ta=` search, `pn=` lookup, biblio parsing, family match, Espacenet link).
+- **Implemented but untested live:** optional Claude extraction (`/api/extract`, schema + quote verification client-side).
 - **Simulated / fixture-based:** seed capability candidates for known documents (applied only after hash match and on-page quote verification); illustrative SF-01/SF-02 mapping; H-01/H-02 starting texts; synthetic matching case.
 - **Not built (out of scope this week):** 628-field catalog UI, multi-country agent engine, patent full-text/claims analysis, legal status, scoring/investment recommendation, multi-user, authentication, server-side persistence (state lives in each browser's localStorage).
 
@@ -106,7 +107,7 @@ Reset: header button „Demo zurücksetzen“ → „Ja, zurücksetzen“ (clear
 
 ## Next development work
 
-1. Obtain EPO OPS credentials, run `tests/live_smoke.py`, verify WO2021055483A1 is found by query, then re-test acceptance 3/4 live.
+1. Done 24 Nov 2026: EPO OPS live, `tests/live_smoke.py` 5/5, acceptance 3/4 re-tested live.
 2. Description retrieval (`published-data/publication/.../description`) to extract problem paragraphs from full text where available.
 3. Server-side persistence (SQLite) with per-run storage and audit, instead of localStorage.
 4. TED: CPV-based queries and buyer/notice detail parsing; distinguish active deadlines.

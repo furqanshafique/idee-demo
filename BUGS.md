@@ -25,6 +25,7 @@ Severity: **Critical** = can break the demo · **High** = breaks a CLAUDE.md rul
 | B8 | High | Step 4 identifier guard | „No internal IDs“ | UL-01, BeispielMed, MH-A, PB-17 and IDEE-01 are blocked. The app's own IDs (CAP-01, SF-01, H-01, RUN-001) are **not** blocked. | **Fixed:** `APP_ID_RE` in `rules.js` and `providers.py`, first proven by a failing test. New tests check that ordinary terms like „ISO 10993-1“ and „Q-Switch“ still pass. |
 | B9 | Low | Browser console | No errors | `favicon.ico` returns 404 on every load. The hosted copy also logs a 404 for `/api/status` (the expected check for a server, but it shows in the console). | **Fixed:** favicon added. The hosted `/api/status` probe remains by design. |
 | B10 | Medium | Styling | Devoreo theme active, font self-hosted | `app/theme.css` is not linked from `app/index.html`, so none of the theme applies. „Inter“ is named but no font files are shipped, so each browser falls back to its own font. | **Fixed:** new complete design system in `theme.css`, Inter 4.1 self-hosted in `app/fonts/` (SIL OFL). |
+| B12 | High | Live EPO patent search (found once keys were set, 24 Nov) | Live search finds WO2021055483A1 and Test 7 shows its problem card | OPS lists **one publication per patent family**. For „universal modular test fixture“ it returns CA3149717A1, which belongs to the same family as WO2021055483A1 (EPO family 72659981, 34 publications). The app matched prepared patents only by exact number, so with live EPO the problem card, „Patent öffnen“ link and H-01 check disappeared (7 checks failed). `live_smoke.py` also only accepted the exact WO number. | **Fixed:** `public_sources.json` stores the EPO family for PAT-01/PAT-02. A live hit from that family stays „Live“ and gets the checked analysis card. The card links to the checked WO document and says it is from the same family as the live hit. Patent cards show „Patentfamilie …“. `live_smoke.py` looks up WO2021055483A1 by number (`pn=`), checks its Espacenet link, and checks the topic search hits its family. |
 | B11 | Low | Dev setup on this Mac | `python3 server/server.py` works | `python3` points to an Intel-only build („bad CPU type“). This is a machine issue, not a repo issue. Workaround: `/usr/bin/python3`. | Workaround |
 
 ## Checked and working
@@ -39,8 +40,8 @@ Severity: **Critical** = can break the demo · **High** = breaks a CLAUDE.md rul
   - own-PDF upload: a verified quote is accepted, an invented one goes to the Prüfliste, `.txt` and fake PDFs are rejected
 - The research plan generated from SF-01 contains no internal IDs.
 - No live label appears on prepared patents while EPO is not configured.
+- **Live EPO (24 Nov 2026, real keys):** `tests/live_smoke.py` 5/5 PASS – TED, Crossref, EPO topic search (13 hits), WO2021055483A1 by number with Espacenet link, and the family check. All 91 guide checks pass with live EPO; a full run is labelled „Live + Vorbereitet“ because market products have no live source.
 
 ## Not yet tested
-- Live EPO patent search (waiting for keys)
 - Firefox, Safari and Edge
 - Narrow screens: checked by screenshot at 1024 / 768 / 390 px in Chrome only
