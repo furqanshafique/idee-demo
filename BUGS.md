@@ -1,6 +1,6 @@
 # IDEE demo – bug log
 
-Branch `devoreo-updates`, tested 23 Nov 2026.
+Branch `idee-updates`, tested 23–24 Nov 2026.
 
 **How tested:** TEST_GUIDE.md Tests 1–11, automated in headless Chrome.
 - First run, before fixes – local server (`http://127.0.0.1:8770/app/`, EPO keys not yet set): 78 / 86 passed.
