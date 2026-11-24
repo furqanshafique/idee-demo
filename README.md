@@ -54,6 +54,7 @@ The rule tests also run in the browser: http://127.0.0.1:8770/app/tests.html (ta
 | `app/js/store.js` | State, versioning (profile, plan, runs, hypotheses), actions; `localStorage` key `devoreo.idee.demo.v1`. |
 | `app/js/research.js` | Live runs via the proxy; offline runs over `data/public_sources.json`. No silent fallback: without EPO keys the patent part of a live run uses the prepared set, and the run is shown as „Live + Vorbereitet (Patente)“ (`runMode()` in `views.js`). |
 | `app/js/pdftext.js` | pdf.js text extraction per page + SHA-256. |
+| `app/js/i18n.js` | DE/EN switch in the header (German is the default and the demo language). Swaps interface texts after each render. Quotes, source titles/abstracts, the fictional company data and the exported report stay in their original wording. The choice is remembered per browser. |
 | `app/js/views.js`, `main.js`, `export.js`, `viewer.js` | Screens, events, HTML/JSON report, PDF side panel. `viewer.js` is reused from the Zulassungsakte prototype. |
 | `app/theme.css`, `app/fonts/` | Complete design system (brand values in the first block) and self-hosted Inter 4.1 (SIL OFL). `app/styles.css` is the old look, kept for rollback. |
 | `app/vendor/` | pdf.js 3.11.174 (vendored, no CDN). |

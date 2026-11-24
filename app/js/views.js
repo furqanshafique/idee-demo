@@ -1,5 +1,6 @@
 // Screens as pure render functions of store state. All external/untrusted
 // text goes through esc(); links are only rendered for https URLs.
+import { langSwitch } from './i18n.js';
 import * as store from './store.js';
 import * as R from './rules.js';
 
@@ -78,6 +79,7 @@ export function header() {
     </div>
     <div class="pchips" aria-label="Datenquellen">${chip('epo', 'Patente')}${chip('ted', 'Ausschreibungen')}${chip('crossref', 'Fachartikel')}</div>
     <div class="tools">
+      ${langSwitch()}
       ${confirming
         ? `<span class="confirm-reset">Alle Demo-Daten löschen? <button class="btn sm danger" data-act="reset-yes">Ja, zurücksetzen</button><button class="btn sm ghost" data-act="reset-no">Abbrechen</button></span>`
         : '<button class="btn ghost sm" data-act="reset-ask">Demo zurücksetzen</button>'}

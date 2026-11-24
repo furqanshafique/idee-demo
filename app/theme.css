@@ -160,6 +160,12 @@ ul.bad li { color: var(--bad); }
 .pchip.bad::before { background: var(--bad); }
 .tools { display: flex; align-items: center; gap: var(--s2); flex: none; }
 .confirm-reset { display: inline-flex; align-items: center; gap: var(--s2); font-size: 13px; }
+.langsw { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); padding: 2px; }
+.langsw button { font: inherit; font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--text-3); background: none; border: 0;
+  border-radius: 4px; padding: 3px 9px; min-height: 24px; cursor: pointer; }
+.langsw button:hover { color: var(--text); }
+.langsw button.on { background: var(--dv-brand-tint); color: var(--dv-brand-dark); }
+.langsw button:focus-visible { outline: none; box-shadow: var(--ring); }
 
 /* ---------- Layout ---------- */
 .layout {

@@ -7,6 +7,7 @@ import { fetchStatus, startLive, startOffline, planSpecs } from './research.js';
 import { checkQuery, validateExtraction } from './rules.js';
 import { buildHtml, buildJson, download } from './export.js';
 import { fileUrl } from './base.js';
+import { translate, setLang, getLang } from './i18n.js';
 
 const $ = sel => document.querySelector(sel);
 const { actions } = store;
@@ -20,6 +21,8 @@ function render() {
   $('#nav').innerHTML = nav();
   $('#flash').innerHTML = flash();
   $('#main').innerHTML = screen();
+  document.documentElement.lang = getLang();
+  ['#header', '#nav', '#flash', '#main'].forEach(sel => translate($(sel)));
   $('#main-wrap').scrollTop = scroll;
   const frame = document.getElementById('report-frame');
   if (frame) frame.srcdoc = buildHtml();
@@ -62,6 +65,7 @@ async function renderViewer() {
     </div>
     ${quotes.length ? `<div class="vquotes">${quotes.map(c => `<div><code>${esc(c.id)}</code> „${esc(c.source.quote)}“</div>`).join('')}</div>` : ''}
     <div id="vcanvas" class="viewer-canvas"></div>`;
+  translate(box);
   const host = $('#vcanvas');
   if (!info?.url) {
     host.innerHTML = '<div class="viewer-missing"><strong>Upload nicht mehr im Speicher.</strong><br>Hochgeladene Dateien werden nur für die laufende Sitzung gehalten (Text und Hash bleiben gespeichert). Datei erneut hochladen, um sie anzuzeigen.</div>';
@@ -69,7 +73,7 @@ async function renderViewer() {
   }
   const res = await renderPdf(host, info.url, v.page);
   const label = $('#vp');
-  if (res && label) { label.textContent = `Seite ${res.page} / ${res.pages}`; v.pages = res.pages; }
+  if (res && label) { label.textContent = `Seite ${res.page} / ${res.pages}`; v.pages = res.pages; translate(label.parentElement); }
 }
 function openDoc(docId, page) {
   store.setUi({ viewer: { docId, page: Number(page) || 1 } }, false);
@@ -118,6 +122,12 @@ document.addEventListener('click', async e => {
       return actions.goto(step);
     }
     case 'flash-x': return store.setUi({ flash: null });
+    case 'lang': {
+      setLang(el.dataset.lang);
+      render();
+      viewerKey = null;
+      return renderViewer();
+    }
     case 'reset-ask': return store.setUi({ confirmReset: true });
     case 'reset-no': return store.setUi({ confirmReset: false });
     case 'reset-yes': runtime.blobs = {}; store.setUi({ confirmReset: false }, false); actions.reset(); viewerKey = null; return renderViewer();
